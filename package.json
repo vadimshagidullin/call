@@ -1,0 +1,14 @@
+{
+  "name": "clearcall",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ClearCall WebRTC video rooms with a small Node WebSocket signaling server.",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js && node --check Preview/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
