@@ -509,8 +509,13 @@ function createPeer(peer, shouldOffer) {
   });
 
   connection.addEventListener("track", event => {
-    event.streams[0]?.getTracks().forEach(track => remoteStream.addTrack(track));
+    if (!remoteStream.getTracks().includes(event.track)) {
+      remoteStream.addTrack(event.track);
+    }
     tile.classList.add("camera-ready");
+    updatePeerStatus(peer.id, `Receiving ${event.track.kind}`);
+    addSystemMessage(`Receiving ${event.track.kind} from ${peer.name}.`);
+    playPeerMedia(tile);
   });
 
   connection.addEventListener("connectionstatechange", () => {
@@ -585,7 +590,7 @@ function createPeerTile(peer, stream) {
   tile.className = "tile connecting";
   tile.id = `peer-${peer.id}`;
   tile.innerHTML = `
-    <video autoplay playsinline></video>
+    <video autoplay playsinline muted></video>
     <audio class="remote-audio" autoplay></audio>
     <div class="participant-art">
       <div>
@@ -601,7 +606,17 @@ function createPeerTile(peer, stream) {
   tile.querySelector("audio").srcObject = stream;
   videoGrid.appendChild(tile);
   applySpeakerSelection();
+  syncVideoGrid();
   return tile;
+}
+
+function playPeerMedia(tile) {
+  const video = tile.querySelector("video");
+  const audio = tile.querySelector("audio");
+  video?.play?.().catch(() => {});
+  audio?.play?.().catch(() => {
+    updatePeerStatus(tile.id.replace("peer-", ""), "Click Join again if audio is blocked");
+  });
 }
 
 function updatePeerTile(peer) {
@@ -631,6 +646,11 @@ function removePeer(peerId) {
     peers.delete(peerId);
   }
   participants.delete(peerId);
+  syncVideoGrid();
+}
+
+function syncVideoGrid() {
+  localTile.classList.toggle("large", peers.size === 0);
 }
 
 function renderPeople() {
