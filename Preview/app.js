@@ -71,11 +71,11 @@ if (!new URLSearchParams(window.location.search).has("room")) {
   window.history.replaceState({}, "", `${window.location.pathname}?room=${encodeURIComponent(roomId)}`);
 }
 if (window.location.protocol === "file:") {
-  setConnectionState("Use localhost", "error");
-  cameraHelp.textContent = "Open http://localhost:4173 to use WebRTC rooms and signaling.";
+  setConnectionState(t("Use localhost", "Откройте localhost"), "error");
+  cameraHelp.textContent = t("Open http://localhost:4173 to use WebRTC rooms and signaling.", "Откройте http://localhost:4173, чтобы использовать комнаты WebRTC и сигналинг.");
 } else if (window.location.hostname.endsWith(".netlify.app") && !signalingUrl) {
-  setConnectionState("Set signaling URL", "error");
-  cameraHelp.textContent = "Netlify is serving the page, but live calls need SIGNALING_URL set to a WebSocket backend.";
+  setConnectionState(t("Set signaling URL", "Укажите URL сигналинга"), "error");
+  cameraHelp.textContent = t("Netlify is serving the page, but live calls need SIGNALING_URL set to a WebSocket backend.", "Netlify показывает страницу, но живым звонкам нужен SIGNALING_URL на WebSocket-сервер.");
 }
 
 function initialsFrom(name) {
@@ -85,7 +85,7 @@ function initialsFrom(name) {
 }
 
 function identity() {
-  const name = displayName.value.trim() || "Guest";
+  const name = displayName.value.trim() || t("Guest", "Гость");
   return { name, initials: initialsFrom(name), micOn, cameraOn };
 }
 
@@ -97,6 +97,53 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#39;"
   }[char]));
+}
+
+function t(en, ru) {
+  return `${en} / ${ru}`;
+}
+
+function micLabel(enabled) {
+  return enabled
+    ? t("Microphone on", "Микрофон включен")
+    : t("Microphone muted", "Микрофон выключен");
+}
+
+function cameraLabel(enabled) {
+  return enabled
+    ? t("Camera on", "Камера включена")
+    : t("Camera off", "Камера выключена");
+}
+
+function mediaKindLabel(kind) {
+  if (kind === "audio") return "аудио";
+  if (kind === "video") return "видео";
+  return `${kind}`;
+}
+
+function connectionStateRu(state) {
+  const labels = {
+    new: "новое",
+    connecting: "подключение",
+    checking: "проверка",
+    connected: "подключено",
+    disconnected: "отключено",
+    failed: "ошибка",
+    closed: "закрыто"
+  };
+  return labels[state] || state;
+}
+
+function connectionStateLabel(state) {
+  return t(state, connectionStateRu(state));
+}
+
+function descriptionTypeRu(type) {
+  const labels = {
+    offer: "предложение",
+    answer: "ответ"
+  };
+  return labels[type] || type;
 }
 
 function normalizeSignalingUrl(value) {
@@ -143,14 +190,14 @@ function generateRoomId() {
 
 function createNewRoom() {
   if (inCall) {
-    showToast("Leave the current room first");
+    showToast(t("Leave the current room first", "Сначала выйдите из текущей комнаты"));
     return;
   }
 
   roomId = generateRoomId();
   updateRoomUrl();
-  setConnectionState(window.location.protocol === "file:" ? "Use localhost" : "Ready", window.location.protocol === "file:" ? "error" : "ready");
-  showToast(`New room ${roomId}`);
+  setConnectionState(window.location.protocol === "file:" ? t("Use localhost", "Откройте localhost") : t("Ready", "Готово"), window.location.protocol === "file:" ? "error" : "ready");
+  showToast(t(`New room ${roomId}`, `Новая комната ${roomId}`));
 }
 
 function setConnectionState(text, tone = "ready") {
@@ -183,12 +230,23 @@ function mediaConstraints(options) {
 }
 
 function labelForDevice(device, fallback, index) {
-  return device.label || `${fallback} ${index + 1}`;
+  if (device.label) return device.label;
+  const fallbackRu = {
+    Camera: "Камера",
+    Microphone: "Микрофон",
+    Speaker: "Динамик"
+  }[fallback] || "Устройство";
+  return t(`${fallback} ${index + 1}`, `${fallbackRu} ${index + 1}`);
 }
 
 function fillDeviceSelect(select, devices, fallbackLabel) {
   const previous = select.value;
-  select.innerHTML = `<option value="">Default ${fallbackLabel.toLowerCase()}</option>`;
+  const fallbackRu = {
+    Camera: "камера",
+    Microphone: "микрофон",
+    Speaker: "динамик"
+  }[fallbackLabel] || "устройство";
+  select.innerHTML = `<option value="">${t(`Default ${fallbackLabel.toLowerCase()}`, `${fallbackRu} по умолчанию`)}</option>`;
   devices.forEach((device, index) => {
     const option = document.createElement("option");
     option.value = device.deviceId;
@@ -217,16 +275,16 @@ async function applySpeakerSelection() {
     try {
       await audio.setSinkId(speakerSelect.value);
     } catch (error) {
-      showToast("Speaker output could not be changed");
+      showToast(t("Speaker output could not be changed", "Не удалось изменить динамик"));
     }
   }
 }
 
 async function changeInputDevice() {
   if (!localStream) return;
-  setConnectionState("Switching device", "connecting");
+  setConnectionState(t("Switching device", "Переключаем устройство"), "connecting");
   const ok = await ensureLocalMedia({ audio: true, video: cameraOn, force: true });
-  setConnectionState(ok ? "Device ready" : "Device blocked", ok ? "connected" : "error");
+  setConnectionState(ok ? t("Device ready", "Устройство готово") : t("Device blocked", "Устройство заблокировано"), ok ? "connected" : "error");
   if (inCall && ok) sendUserUpdate();
 }
 
@@ -237,25 +295,25 @@ function syncIdentity() {
   youAvatar.textContent = current.initials;
   youName.textContent = current.name;
   localTileName.textContent = current.name;
-  localLabel.textContent = `${current.name} (you)`;
+  localLabel.textContent = `${current.name} (${t("you", "вы")})`;
   sendUserUpdate();
 }
 
 function syncDeviceStatus() {
   micDot.classList.toggle("off", !micOn);
-  micStatus.textContent = micOn ? "Microphone on" : "Microphone muted";
+  micStatus.textContent = micLabel(micOn);
   cameraDot.classList.toggle("off", !cameraOn);
-  cameraStatus.textContent = cameraOn ? "Camera on" : "Camera off";
-  localTileStatus.textContent = cameraOn ? "Camera is on" : "Camera is off";
-  youStatus.textContent = micOn ? "You - Mic on" : "You - Muted";
+  cameraStatus.textContent = cameraLabel(cameraOn);
+  localTileStatus.textContent = cameraOn ? t("Camera is on", "Камера включена") : t("Camera is off", "Камера выключена");
+  youStatus.textContent = micOn ? t("You - Mic on", "Вы - микрофон включен") : t("You - Muted", "Вы - без звука");
   previewMic.innerHTML = micOn ? icons.micOn : icons.micOff;
   micTool.innerHTML = micOn ? icons.micOn : icons.micOff;
   previewCamera.innerHTML = cameraOn ? icons.cameraOn : icons.cameraOff;
   cameraTool.innerHTML = cameraOn ? icons.cameraOn : icons.cameraOff;
-  setButtonState(previewMic, micOn, "Mute microphone", "Unmute microphone");
-  setButtonState(micTool, micOn, "Mute microphone", "Unmute microphone");
-  setButtonState(previewCamera, cameraOn, "Turn camera off", "Turn camera on");
-  setButtonState(cameraTool, cameraOn, "Turn camera off", "Turn camera on");
+  setButtonState(previewMic, micOn, t("Mute microphone", "Выключить микрофон"), t("Unmute microphone", "Включить микрофон"));
+  setButtonState(micTool, micOn, t("Mute microphone", "Выключить микрофон"), t("Unmute microphone", "Включить микрофон"));
+  setButtonState(previewCamera, cameraOn, t("Turn camera off", "Выключить камеру"), t("Turn camera on", "Включить камеру"));
+  setButtonState(cameraTool, cameraOn, t("Turn camera off", "Выключить камеру"), t("Turn camera on", "Включить камеру"));
 
   if (localStream) {
     localStream.getAudioTracks().forEach(track => {
@@ -278,15 +336,15 @@ function hasVideoTrack() {
 
 async function getMedia(constraints) {
   if (!navigator.mediaDevices?.getUserMedia) {
-    cameraHelp.textContent = "Your browser does not expose camera or microphone access from this page.";
-    setConnectionState("Media unavailable", "error");
+    cameraHelp.textContent = t("Your browser does not expose camera or microphone access from this page.", "Браузер не дает доступ к камере или микрофону на этой странице.");
+    setConnectionState(t("Media unavailable", "Медиа недоступны"), "error");
     return null;
   }
 
   try {
     return await navigator.mediaDevices.getUserMedia(constraints);
   } catch (error) {
-    setConnectionState("Media blocked", "error");
+    setConnectionState(t("Media blocked", "Медиа заблокированы"), "error");
     return null;
   }
 }
@@ -338,13 +396,13 @@ async function ensureLocalMedia(options = { audio: true, video: true }) {
       localStream?.getTracks().forEach(track => track.stop());
       attachLocalStream(audioOnly);
       cameraOn = false;
-      cameraHelp.textContent = "Camera was not available, but your microphone is connected.";
+      cameraHelp.textContent = t("Camera was not available, but your microphone is connected.", "Камера недоступна, но микрофон подключен.");
       await replacePeerTracks();
       return true;
     }
   }
 
-  cameraHelp.textContent = "Camera or microphone permission was not granted. You can try joining again.";
+  cameraHelp.textContent = t("Camera or microphone permission was not granted. You can try joining again.", "Доступ к камере или микрофону не разрешен. Попробуйте войти еще раз.");
   return false;
 }
 
@@ -380,10 +438,10 @@ function formatTime(value) {
 function startClock() {
   clearInterval(callTimer);
   elapsed = 0;
-  callClock.textContent = "Live 00:00";
+  callClock.textContent = t("Live 00:00", "Эфир 00:00");
   callTimer = setInterval(() => {
     elapsed += 1;
-    callClock.textContent = `Live ${formatTime(elapsed)}`;
+    callClock.textContent = t(`Live ${formatTime(elapsed)}`, `Эфир ${formatTime(elapsed)}`);
   }, 1000);
 }
 
@@ -409,17 +467,17 @@ function send(message) {
 function connectSocket() {
   if (socket && [WebSocket.OPEN, WebSocket.CONNECTING].includes(socket.readyState)) return;
   if (window.location.hostname.endsWith(".netlify.app") && !signalingUrl) {
-    setConnectionState("No signaling URL", "error");
-    showToast("Set SIGNALING_URL on Netlify");
+    setConnectionState(t("No signaling URL", "Нет URL сигналинга"), "error");
+    showToast(t("Set SIGNALING_URL on Netlify", "Укажите SIGNALING_URL в Netlify"));
     return;
   }
 
   socket = new WebSocket(wsUrl());
-  setConnectionState("Connecting", "connecting");
+  setConnectionState(t("Connecting", "Подключение"), "connecting");
 
   socket.addEventListener("open", () => {
     const current = identity();
-    setConnectionState("Joining room", "connecting");
+    setConnectionState(t("Joining room", "Входим в комнату"), "connecting");
     send({ type: "join", roomId, ...current });
   });
 
@@ -430,13 +488,13 @@ function connectSocket() {
 
   socket.addEventListener("close", () => {
     if (!inCall) return;
-    setConnectionState("Reconnecting", "connecting");
+    setConnectionState(t("Reconnecting", "Переподключение"), "connecting");
     clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(connectSocket, 900);
   });
 
   socket.addEventListener("error", () => {
-    setConnectionState("Signaling error", "error");
+    setConnectionState(t("Signaling error", "Ошибка сигналинга"), "error");
   });
 }
 
@@ -448,7 +506,7 @@ function sendUserUpdate() {
 function handleServerMessage(message) {
   if (message.type === "joined") {
     myId = message.id;
-    setConnectionState("In room", "connected");
+    setConnectionState(t("In room", "В комнате"), "connected");
     participants.clear();
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
@@ -456,7 +514,7 @@ function handleServerMessage(message) {
     }
     startPeerSync();
     renderPeople();
-    addSystemMessage(`Joined room ${message.roomId}.`);
+    addSystemMessage(t(`Joined room ${message.roomId}.`, `Вы вошли в комнату ${message.roomId}.`));
     return;
   }
 
@@ -464,7 +522,7 @@ function handleServerMessage(message) {
     participants.set(message.peer.id, message.peer);
     ensurePeer(message.peer, true);
     renderPeople();
-    addSystemMessage(`${message.peer.name} joined.`);
+    addSystemMessage(t(`${message.peer.name} joined.`, `${message.peer.name} вошел в комнату.`));
     return;
   }
 
@@ -478,7 +536,7 @@ function handleServerMessage(message) {
   }
 
   if (message.type === "peer-left") {
-    addSystemMessage("A participant left.");
+    addSystemMessage(t("A participant left.", "Участник вышел."));
     removePeer(message.peerId);
     renderPeople();
     return;
@@ -494,8 +552,8 @@ function handleServerMessage(message) {
   if (message.type === "signal") {
     handleSignal(message.from, message.data).catch(error => {
       console.error("WebRTC signal failed", error);
-      addSystemMessage(`Connection setup error: ${error.message}`);
-      setConnectionState("Connection error", "error");
+      addSystemMessage(t(`Connection setup error: ${error.message}`, `Ошибка настройки соединения: ${error.message}`));
+      setConnectionState(t("Connection error", "Ошибка соединения"), "error");
     });
     return;
   }
@@ -506,7 +564,7 @@ function handleServerMessage(message) {
   }
 
   if (message.type === "error") {
-    addSystemMessage(`Server error: ${message.message}`);
+    addSystemMessage(t(`Server error: ${message.message}`, `Ошибка сервера: ${message.message}`));
   }
 }
 
@@ -541,7 +599,7 @@ function createPeer(peer) {
   const connection = new RTCPeerConnection(peerConfig());
   const remoteStream = new MediaStream();
   const tile = createPeerTile(peer, remoteStream);
-  addSystemMessage(`Connecting to ${peer.name}.`);
+  addSystemMessage(t(`Connecting to ${peer.name}.`, `Подключаемся к ${peer.name}.`));
 
   if (localStream) {
     localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
@@ -558,25 +616,25 @@ function createPeer(peer) {
       remoteStream.addTrack(event.track);
     }
     tile.classList.add("camera-ready");
-    updatePeerStatus(peer.id, `Receiving ${event.track.kind}`);
-    addSystemMessage(`Receiving ${event.track.kind} from ${peer.name}.`);
+    updatePeerStatus(peer.id, t(`Receiving ${event.track.kind}`, `Получаем ${mediaKindLabel(event.track.kind)}`));
+    addSystemMessage(t(`Receiving ${event.track.kind} from ${peer.name}.`, `Получаем ${mediaKindLabel(event.track.kind)} от ${peer.name}.`));
     playPeerMedia(tile);
   });
 
   connection.addEventListener("connectionstatechange", () => {
     tile.classList.toggle("connecting", ["connecting", "new", "checking"].includes(connection.connectionState));
     if (["connecting", "new", "checking"].includes(connection.connectionState)) {
-      setConnectionState("Connecting peer", "connecting");
-      updatePeerStatus(peer.id, connection.connectionState);
+      setConnectionState(t("Connecting peer", "Подключаем участника"), "connecting");
+      updatePeerStatus(peer.id, connectionStateLabel(connection.connectionState));
     }
     if (["failed", "closed", "disconnected"].includes(connection.connectionState)) {
-      updatePeerStatus(peer.id, connection.connectionState);
-      setConnectionState("Peer disconnected", "error");
-      addSystemMessage(`${peer.name} connection is ${connection.connectionState}.`);
+      updatePeerStatus(peer.id, connectionStateLabel(connection.connectionState));
+      setConnectionState(t("Peer disconnected", "Участник отключился"), "error");
+      addSystemMessage(t(`${peer.name} connection is ${connection.connectionState}.`, `Соединение с ${peer.name}: ${connectionStateRu(connection.connectionState)}.`));
     } else if (connection.connectionState === "connected") {
-      updatePeerStatus(peer.id, "Connected");
-      setConnectionState("Peer connected", "connected");
-      addSystemMessage(`${peer.name} connected.`);
+      updatePeerStatus(peer.id, t("Connected", "Подключено"));
+      setConnectionState(t("Peer connected", "Участник подключен"), "connected");
+      addSystemMessage(t(`${peer.name} connected.`, `${peer.name} подключен.`));
     }
   });
 
@@ -592,7 +650,9 @@ async function makeOffer(peerId) {
 
   peer.madeOffer = true;
   const participant = participants.get(peerId);
-  addSystemMessage(`Sending connection offer${participant ? ` to ${participant.name}` : ""}.`);
+  addSystemMessage(participant
+    ? t(`Sending connection offer to ${participant.name}.`, `Отправляем предложение соединения для ${participant.name}.`)
+    : t("Sending connection offer.", "Отправляем предложение соединения."));
   const offer = await peer.connection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
   await peer.connection.setLocalDescription(offer);
   send({ type: "signal", to: peerId, data: { description: peer.connection.localDescription } });
@@ -600,11 +660,11 @@ async function makeOffer(peerId) {
 
 async function handleSignal(peerId, data) {
   let peer = peers.get(peerId);
-  const participant = participants.get(peerId) || { id: peerId, name: "Guest", initials: "G", micOn: true, cameraOn: true };
+  const participant = participants.get(peerId) || { id: peerId, name: t("Guest", "Гость"), initials: "G", micOn: true, cameraOn: true };
   if (!peer) peer = createPeer(participant);
 
   if (data.description) {
-    addSystemMessage(`Received ${data.description.type} from ${participant.name}.`);
+    addSystemMessage(t(`Received ${data.description.type} from ${participant.name}.`, `Получено ${descriptionTypeRu(data.description.type)} от ${participant.name}.`));
     await peer.connection.setRemoteDescription(data.description);
     while (peer.pendingCandidates.length) {
       await peer.connection.addIceCandidate(peer.pendingCandidates.shift());
@@ -644,7 +704,7 @@ function createPeerTile(peer, stream) {
       <div>
         <div class="initials">${escapeHtml(peer.initials)}</div>
         <h3>${escapeHtml(peer.name)}</h3>
-        <p>${peer.cameraOn ? "Connecting video" : "Camera is off"}</p>
+        <p>${peer.cameraOn ? t("Connecting video", "Подключаем видео") : t("Camera is off", "Камера выключена")}</p>
       </div>
     </div>
     <div class="tile-label"><span class="tile-status"></span><span>${escapeHtml(peer.name)}</span></div>
@@ -663,7 +723,7 @@ function playPeerMedia(tile) {
   const audio = tile.querySelector("audio");
   video?.play?.().catch(() => {});
   audio?.play?.().catch(() => {
-    updatePeerStatus(tile.id.replace("peer-", ""), "Click Join again if audio is blocked");
+    updatePeerStatus(tile.id.replace("peer-", ""), t("Click Join again if audio is blocked", "Нажмите «Войти» еще раз, если звук заблокирован"));
   });
 }
 
@@ -676,7 +736,7 @@ function updatePeerTile(peer) {
   tile.querySelector(".tile-label span:last-child").textContent = peer.name;
   const status = tile.querySelector(".participant-art p");
   if (status) {
-    status.textContent = peer.cameraOn ? "Connected" : "Camera is off";
+    status.textContent = peer.cameraOn ? t("Connected", "Подключено") : t("Camera is off", "Камера выключена");
   }
 }
 
@@ -709,7 +769,7 @@ function renderPeople() {
   const current = identity();
   youAvatar.textContent = current.initials;
   youName.textContent = current.name;
-  youStatus.textContent = micOn ? "You - Mic on" : "You - Muted";
+  youStatus.textContent = micOn ? t("You - Mic on", "Вы - микрофон включен") : t("You - Muted", "Вы - без звука");
 
   for (const peer of participants.values()) {
     const row = document.createElement("div");
@@ -717,7 +777,7 @@ function renderPeople() {
     row.dataset.peerId = peer.id;
     row.innerHTML = `
       <div class="avatar">${escapeHtml(peer.initials)}</div>
-      <div><strong>${escapeHtml(peer.name)}</strong><span>${peer.micOn ? "Mic on" : "Muted"} - ${peer.cameraOn ? "Camera on" : "Camera off"}</span></div>
+      <div><strong>${escapeHtml(peer.name)}</strong><span>${peer.micOn ? t("Mic on", "Микрофон включен") : t("Muted", "Без звука")} - ${peer.cameraOn ? cameraLabel(true) : cameraLabel(false)}</span></div>
       <div class="person-icons">${peer.cameraOn ? icons.cameraOn : icons.cameraOff}</div>
     `;
     peopleList.appendChild(row);
@@ -727,7 +787,7 @@ function renderPeople() {
     const empty = document.createElement("div");
     empty.className = "empty-state";
     empty.dataset.peerId = "empty";
-    empty.textContent = "Waiting for another tab to join this room.";
+    empty.textContent = t("Waiting for another tab to join this room.", "Ждем, пока другая вкладка войдет в эту комнату.");
     peopleList.appendChild(empty);
   }
 }
@@ -740,7 +800,7 @@ function addSystemMessage(text) {
 function addChatMessage(text, name, mine) {
   const message = document.createElement("div");
   message.className = mine ? "message mine" : "message";
-  message.innerHTML = `<strong>${escapeHtml(mine ? "You" : name)}</strong><div class="bubble"></div>`;
+  message.innerHTML = `<strong>${escapeHtml(mine ? t("You", "Вы") : name)}</strong><div class="bubble"></div>`;
   message.querySelector(".bubble").textContent = text;
   chatFeed.appendChild(message);
   chatFeed.scrollTop = chatFeed.scrollHeight;
@@ -748,11 +808,11 @@ function addChatMessage(text, name, mine) {
 
 async function joinCall() {
   syncIdentity();
-  setConnectionState("Checking devices", "connecting");
+  setConnectionState(t("Checking devices", "Проверяем устройства"), "connecting");
   const mediaReady = await ensureLocalMedia({ audio: true, video: true });
   if (!mediaReady) {
-    showToast("Camera or microphone blocked");
-    setConnectionState("Media blocked", "error");
+    showToast(t("Camera or microphone blocked", "Камера или микрофон заблокированы"));
+    setConnectionState(t("Media blocked", "Медиа заблокированы"), "error");
     return;
   }
 
@@ -770,7 +830,7 @@ async function joinCall() {
   connectSocket();
   startClock();
   renderPeople();
-  addSystemMessage(`Client ${buildId} joined locally.`);
+  addSystemMessage(t(`Client ${buildId} joined locally.`, `Клиент ${buildId} вошел локально.`));
   switchToChat();
 }
 
@@ -780,7 +840,7 @@ function leaveCall() {
   clearTimeout(reconnectTimer);
   clearInterval(peerSyncTimer);
   callClock.textContent = "00:00";
-  setConnectionState("Ready", "ready");
+  setConnectionState(t("Ready", "Готово"), "ready");
   callScreen.classList.remove("active");
   joinScreen.classList.remove("hidden");
   window.scrollTo(0, 0);
@@ -799,14 +859,14 @@ async function copyInvite() {
   const invite = roomUrl();
   try {
     await navigator.clipboard.writeText(invite);
-    showToast("Invite link copied");
+    showToast(t("Invite link copied", "Ссылка-приглашение скопирована"));
   } catch (error) {
     showToast(invite);
   }
 }
 
 function sendReaction() {
-  send({ type: "chat", text: "(like)" });
+  send({ type: "chat", text: t("(like)", "(лайк)") });
   document.querySelector('[data-panel="chatPanel"]').click();
 }
 
@@ -827,7 +887,7 @@ speakerSelect.addEventListener("change", applySpeakerSelection);
 navigator.mediaDevices?.addEventListener?.("devicechange", loadDevices);
 shareTool.addEventListener("click", async () => {
   if (!navigator.mediaDevices?.getDisplayMedia) {
-    showToast("Screen sharing is not available");
+    showToast(t("Screen sharing is not available", "Демонстрация экрана недоступна"));
     return;
   }
 
@@ -839,7 +899,7 @@ shareTool.addEventListener("click", async () => {
       await sender?.replaceTrack(screenTrack);
     }
     shareTool.classList.add("active");
-    showToast("Screen sharing on");
+    showToast(t("Screen sharing on", "Демонстрация экрана включена"));
     screenTrack.addEventListener("ended", async () => {
       const cameraTrack = localStream?.getVideoTracks()[0] || null;
       for (const peer of peers.values()) {
@@ -847,10 +907,10 @@ shareTool.addEventListener("click", async () => {
         await sender?.replaceTrack(cameraTrack);
       }
       shareTool.classList.remove("active");
-      showToast("Screen sharing off");
+      showToast(t("Screen sharing off", "Демонстрация экрана выключена"));
     });
   } catch (error) {
-    showToast("Screen sharing cancelled");
+    showToast(t("Screen sharing cancelled", "Демонстрация экрана отменена"));
   }
 });
 

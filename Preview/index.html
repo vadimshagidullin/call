@@ -3,23 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ClearCall - Video Meetings</title>
+  <title>ClearCall - Video Meetings / Видеовстречи</title>
   <style>
     :root {
       color-scheme: light;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --ink: #111827;
-      --soft-ink: #374151;
-      --muted: #667085;
-      --line: #d8dee8;
+      --ink: #17202f;
+      --soft-ink: #405064;
+      --muted: #6d7a8d;
+      --line: #dfe6ef;
       --paper: #ffffff;
-      --surface: #f5f7fb;
-      --sea: #087f8c;
-      --sky: #2864d9;
-      --lime: #51b56d;
+      --surface: #f7f9fc;
+      --sea: #178f92;
+      --sky: #4f73d9;
+      --violet: #8e6de8;
+      --lime: #58bd7b;
       --rose: #d92d42;
-      --amber: #e2a72e;
-      --shadow: 0 20px 70px rgba(17, 24, 39, 0.14);
+      --amber: #d99b2b;
+      --blush: #fff3f0;
+      --shadow: 0 22px 70px rgba(32, 48, 73, 0.12);
     }
 
     * { box-sizing: border-box; }
@@ -31,7 +33,8 @@
 
     body {
       margin: 0;
-      background: #edf1f6;
+      background:
+        linear-gradient(135deg, #f4f7fb 0%, #eef7f5 48%, #f8f1f4 100%);
       color: var(--ink);
     }
 
@@ -48,7 +51,7 @@
     .app {
       min-height: 100vh;
       display: grid;
-      grid-template-rows: 68px 1fr;
+      grid-template-rows: auto 1fr;
     }
 
     .topbar {
@@ -57,12 +60,13 @@
       justify-content: space-between;
       gap: 18px;
       padding: 0 24px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.82);
       border-bottom: 1px solid var(--line);
       backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
       z-index: 10;
+      min-height: 68px;
     }
 
     .brand {
@@ -78,11 +82,11 @@
       border-radius: 10px;
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 42%),
-        linear-gradient(135deg, var(--sea), var(--sky));
+        linear-gradient(135deg, var(--sea), var(--violet));
       display: grid;
       place-items: center;
       color: white;
-      box-shadow: 0 10px 24px rgba(40, 100, 217, 0.26);
+      box-shadow: 0 10px 24px rgba(79, 115, 217, 0.22);
       flex: 0 0 auto;
     }
 
@@ -107,6 +111,7 @@
       color: var(--soft-ink);
       font-size: 14px;
       min-width: 0;
+      justify-content: flex-end;
     }
 
     .room-code {
@@ -169,7 +174,7 @@
       align-items: center;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: #f8fafc;
+      background: #fbfcff;
       color: var(--muted);
       padding: 0 10px;
       font-size: 12px;
@@ -185,7 +190,7 @@
       opacity: 0;
       pointer-events: none;
       z-index: 20;
-      background: #111827;
+      background: #17202f;
       color: white;
       border-radius: 999px;
       padding: 9px 14px;
@@ -224,13 +229,14 @@
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
       overflow: hidden;
+      border-radius: 8px;
     }
 
     .preview-pane {
       position: relative;
       min-height: 520px;
       background:
-        linear-gradient(180deg, rgba(17, 24, 39, 0.08), rgba(17, 24, 39, 0.22)),
+        linear-gradient(180deg, rgba(23, 32, 47, 0.08), rgba(23, 32, 47, 0.20)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='820' viewBox='0 0 1200 820'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%23087f8c'/%3E%3Cstop offset='.52' stop-color='%232864d9'/%3E%3Cstop offset='1' stop-color='%2351b56d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='820' fill='%23dfe8ef'/%3E%3Cpath d='M0 660 C190 560 330 740 520 630 C690 532 800 430 990 484 C1096 514 1150 480 1200 440 L1200 820 L0 820 Z' fill='url(%23a)' opacity='.42'/%3E%3Ccircle cx='210' cy='188' r='148' fill='%23fff' opacity='.22'/%3E%3Ccircle cx='1005' cy='162' r='214' fill='%23fff' opacity='.16'/%3E%3Crect x='95' y='96' width='392' height='244' rx='24' fill='%23ffffff' opacity='.18'/%3E%3Crect x='565' y='136' width='520' height='318' rx='28' fill='%23ffffff' opacity='.14'/%3E%3Crect x='156' y='404' width='325' height='214' rx='24' fill='%23111827' opacity='.12'/%3E%3Crect x='578' y='532' width='260' height='156' rx='22' fill='%23ffffff' opacity='.16'/%3E%3C/svg%3E");
       background-size: cover;
       background-position: center;
@@ -242,7 +248,8 @@
     .camera-frame {
       position: absolute;
       inset: 22px;
-      background: #101828;
+      background: #17202f;
+      border-radius: 8px;
       overflow: hidden;
       display: grid;
       place-items: center;
@@ -268,7 +275,7 @@
       color: white;
       text-align: center;
       background:
-        linear-gradient(155deg, rgba(8, 127, 140, 0.9), rgba(40, 100, 217, 0.78)),
+        linear-gradient(155deg, rgba(23, 143, 146, 0.9), rgba(142, 109, 232, 0.76)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='700' viewBox='0 0 900 700'%3E%3Crect width='900' height='700' fill='none'/%3E%3Ccircle cx='445' cy='250' r='92' fill='%23ffffff' opacity='.28'/%3E%3Cpath d='M262 566c28-112 101-168 183-168s156 56 184 168' fill='%23ffffff' opacity='.24'/%3E%3Cpath d='M126 177c86-58 185-88 299-88 128 0 249 38 349 108' stroke='%23fff' stroke-width='18' opacity='.18' fill='none' stroke-linecap='round'/%3E%3Cpath d='M172 246c76-50 162-76 258-76 102 0 198 30 282 89' stroke='%23fff' stroke-width='16' opacity='.18' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-size: cover;
       background-position: center;
@@ -321,7 +328,9 @@
       display: grid;
       align-content: center;
       gap: 24px;
-      background: #fbfcfe;
+      background:
+        linear-gradient(180deg, rgba(255, 243, 240, 0.55), rgba(255, 255, 255, 0.92)),
+        #fbfcfe;
     }
 
     .setup-copy h2 {
@@ -361,7 +370,7 @@
 
     .field input:focus {
       border-color: var(--sky);
-      box-shadow: 0 0 0 4px rgba(40, 100, 217, 0.12);
+      box-shadow: 0 0 0 4px rgba(79, 115, 217, 0.12);
     }
 
     .join-actions {
@@ -391,7 +400,7 @@
     .btn.primary {
       background: var(--sky);
       color: white;
-      box-shadow: 0 12px 28px rgba(40, 100, 217, 0.24);
+      box-shadow: 0 12px 28px rgba(79, 115, 217, 0.22);
     }
 
     .btn.secondary {
@@ -438,7 +447,7 @@
 
     .field select:focus {
       border-color: var(--sky);
-      box-shadow: 0 0 0 4px rgba(40, 100, 217, 0.12);
+      box-shadow: 0 0 0 4px rgba(79, 115, 217, 0.12);
     }
 
     .status-pill {
@@ -496,10 +505,10 @@
     .tile {
       position: relative;
       overflow: hidden;
-      background: #111827;
-      border: 1px solid rgba(17, 24, 39, 0.14);
+      background: #17202f;
+      border: 1px solid rgba(32, 48, 73, 0.12);
       min-height: 210px;
-      box-shadow: 0 16px 38px rgba(17, 24, 39, 0.12);
+      box-shadow: 0 16px 38px rgba(32, 48, 73, 0.11);
     }
 
     .tile.large {
@@ -545,7 +554,7 @@
 
     .tile:nth-child(1) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(8, 127, 140, 0.88), rgba(40, 100, 217, 0.75)),
+        linear-gradient(150deg, rgba(23, 143, 146, 0.86), rgba(79, 115, 217, 0.74)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%232864d9'/%3E%3Ccircle cx='350' cy='180' r='76' fill='%23fff' opacity='.25'/%3E%3Cpath d='M210 420c26-94 80-141 140-141s114 47 140 141' fill='%23fff' opacity='.23'/%3E%3Cpath d='M74 96h210v126H74zM418 118h196v112H418zM98 305h142v82H98z' fill='%23fff' opacity='.12'/%3E%3C/svg%3E");
     }
 
@@ -563,7 +572,7 @@
 
     .tile:nth-child(4) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(55, 65, 81, 0.9), rgba(40, 100, 217, 0.76)),
+        linear-gradient(150deg, rgba(64, 80, 100, 0.88), rgba(79, 115, 217, 0.74)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%23374151'/%3E%3Ccircle cx='350' cy='180' r='76' fill='%23fff' opacity='.24'/%3E%3Cpath d='M210 420c26-94 80-141 140-141s114 47 140 141' fill='%23fff' opacity='.22'/%3E%3Cpath d='M132 104h436M132 146h290M132 188h350' stroke='%23fff' opacity='.15' stroke-width='18' stroke-linecap='round'/%3E%3C/svg%3E");
     }
 
@@ -603,7 +612,7 @@
       padding: 8px 10px;
       border-radius: 8px;
       color: white;
-      background: rgba(17, 24, 39, 0.62);
+      background: rgba(23, 32, 47, 0.62);
       backdrop-filter: blur(12px);
       font-size: 13px;
       font-weight: 800;
@@ -626,7 +635,7 @@
       padding: 12px;
       background: white;
       border: 1px solid var(--line);
-      box-shadow: 0 14px 36px rgba(17, 24, 39, 0.08);
+      box-shadow: 0 14px 36px rgba(32, 48, 73, 0.08);
     }
 
     .tool {
@@ -634,7 +643,7 @@
       height: 52px;
       border-radius: 999px;
       border: 1px solid var(--line);
-      background: #f8fafc;
+      background: #fbfcff;
       color: var(--soft-ink);
       display: grid;
       place-items: center;
@@ -666,7 +675,7 @@
       left: 50%;
       transform: translateX(-50%);
       white-space: nowrap;
-      background: #111827;
+      background: #17202f;
       color: white;
       border-radius: 6px;
       padding: 6px 8px;
@@ -681,7 +690,7 @@
       grid-template-rows: auto 1fr auto;
       background: white;
       border: 1px solid var(--line);
-      box-shadow: 0 14px 36px rgba(17, 24, 39, 0.08);
+      box-shadow: 0 14px 36px rgba(32, 48, 73, 0.08);
       overflow: hidden;
     }
 
@@ -689,7 +698,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       border-bottom: 1px solid var(--line);
-      background: #f8fafc;
+      background: #fbfcff;
     }
 
     .panel-tab {
@@ -848,20 +857,28 @@
     }
 
     @media (max-width: 980px) {
-      .app {
-        grid-template-rows: 62px 1fr;
-      }
-
       .topbar {
-        padding: 0 14px;
+        min-height: 62px;
+        padding: 10px 14px;
+        flex-wrap: wrap;
+        row-gap: 8px;
       }
 
       .room-meta {
+        flex: 1 1 360px;
+        flex-wrap: wrap;
         gap: 8px;
       }
 
       .room-code {
-        max-width: 168px;
+        max-width: none;
+      }
+
+      .connection-state {
+        white-space: normal;
+        line-height: 1.15;
+        padding-top: 6px;
+        padding-bottom: 6px;
       }
 
       .join-shell {
@@ -967,26 +984,26 @@
         </div>
         <div>
           <h1>ClearCall</h1>
-          <span>Secure internet video meetings</span>
+          <span>Secure internet video meetings / Безопасные видеовстречи</span>
         </div>
       </div>
       <div class="room-meta">
-        <span class="connection-state ready" id="connectionStatus">Ready</span>
+        <span class="connection-state ready" id="connectionStatus">Ready / Готово</span>
         <span class="build-tag" id="buildTag">v-local</span>
         <span id="callClock">00:00</span>
-        <button class="room-code" id="copyInvite" aria-label="Copy meeting invite">
+        <button class="room-code" id="copyInvite" aria-label="Copy meeting invite / Скопировать приглашение">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
             <rect x="9" y="9" width="13" height="13" rx="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
-          <span>Room</span>
+          <span>Room / Комната</span>
           <strong id="roomCode">CC-4829</strong>
         </button>
       </div>
     </header>
 
     <main class="stage">
-      <section class="join-screen" id="joinScreen" aria-label="Join meeting">
+      <section class="join-screen" id="joinScreen" aria-label="Join meeting / Войти во встречу">
         <div class="join-shell">
           <div class="preview-pane">
             <div class="camera-frame" id="previewFrame">
@@ -994,20 +1011,20 @@
               <div class="camera-fallback">
                 <div>
                   <div class="fallback-initials" id="previewInitials">VS</div>
-                  <h2>Camera preview</h2>
-                  <p id="cameraHelp">Use the camera button below to preview your video before joining.</p>
+                  <h2>Camera preview / Предпросмотр камеры</h2>
+                  <p id="cameraHelp">Use the camera button below to preview your video before joining. / Нажмите кнопку камеры ниже, чтобы проверить видео перед входом.</p>
                 </div>
               </div>
             </div>
             <div class="preview-actions">
-              <button class="tool active" id="previewMic" aria-label="Microphone on">
+              <button class="tool active" id="previewMic" aria-label="Microphone on / Микрофон включен">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                   <path d="M12 19v3"></path>
                 </svg>
               </button>
-              <button class="tool off" id="previewCamera" aria-label="Camera off">
+              <button class="tool off" id="previewCamera" aria-label="Camera off / Камера выключена">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path>
                   <path d="m2 2 20 20"></path>
@@ -1018,37 +1035,37 @@
 
           <aside class="setup-pane">
             <div class="setup-copy">
-              <h2>Start the call room</h2>
-              <p>Join with your camera and microphone preferences already set. Open this page in two tabs to connect them through WebRTC.</p>
+              <h2>Start the call room / Начать комнату звонка</h2>
+              <p>Join with your camera and microphone preferences already set. / Войдите с уже выбранными настройками камеры и микрофона.</p>
             </div>
 
             <div class="field">
-              <label for="displayName">Display name</label>
+              <label for="displayName">Display name / Имя на экране</label>
               <input id="displayName" value="Vadim Shagidullin" maxlength="36">
             </div>
 
-            <div class="device-row" aria-label="Device status">
-              <div class="status-pill"><span class="dot" id="micDot"></span><span id="micStatus">Microphone on</span></div>
-              <div class="status-pill"><span class="dot off" id="cameraDot"></span><span id="cameraStatus">Camera off</span></div>
+            <div class="device-row" aria-label="Device status / Статус устройств">
+              <div class="status-pill"><span class="dot" id="micDot"></span><span id="micStatus">Microphone on / Микрофон включен</span></div>
+              <div class="status-pill"><span class="dot off" id="cameraDot"></span><span id="cameraStatus">Camera off / Камера выключена</span></div>
             </div>
 
-            <div class="device-selectors" aria-label="Device selection">
+            <div class="device-selectors" aria-label="Device selection / Выбор устройств">
               <div class="field compact">
-                <label for="cameraSelect">Camera</label>
+                <label for="cameraSelect">Camera / Камера</label>
                 <select id="cameraSelect">
-                  <option value="">Default camera</option>
+                  <option value="">Default camera / Камера по умолчанию</option>
                 </select>
               </div>
               <div class="field compact">
-                <label for="microphoneSelect">Microphone</label>
+                <label for="microphoneSelect">Microphone / Микрофон</label>
                 <select id="microphoneSelect">
-                  <option value="">Default microphone</option>
+                  <option value="">Default microphone / Микрофон по умолчанию</option>
                 </select>
               </div>
               <div class="field compact">
-                <label for="speakerSelect">Speaker</label>
+                <label for="speakerSelect">Speaker / Динамик</label>
                 <select id="speakerSelect">
-                  <option value="">Default speaker</option>
+                  <option value="">Default speaker / Динамик по умолчанию</option>
                 </select>
               </div>
             </div>
@@ -1058,28 +1075,28 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path>
                 </svg>
-                Join meeting
+                Join meeting / Войти
               </button>
               <button class="btn secondary" id="copyInviteSetup">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07L11.5 4.43"></path>
                   <path d="M14 11a5 5 0 0 0-7.07 0L3.39 14.54a5 5 0 0 0 7.07 7.07l2.04-2.04"></path>
                 </svg>
-                Copy invite
+                Copy invite / Скопировать ссылку
               </button>
               <button class="btn secondary" id="newRoomSetup">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
                 </svg>
-                New room
+                New room / Новая комната
               </button>
             </div>
           </aside>
         </div>
       </section>
 
-      <section class="call-screen" id="callScreen" aria-label="Video call room">
+      <section class="call-screen" id="callScreen" aria-label="Video call room / Комната видеозвонка">
         <div class="meeting">
           <div class="video-grid" id="videoGrid">
             <article class="tile large" id="localTile">
@@ -1087,41 +1104,41 @@
               <div class="participant-art">
                 <div>
                   <div class="initials" id="localInitials">VS</div>
-                  <h3 id="localTileName">You</h3>
-                  <p id="localTileStatus">Waiting for media</p>
+                  <h3 id="localTileName">You / Вы</h3>
+                  <p id="localTileStatus">Waiting for media / Ожидание камеры и микрофона</p>
                 </div>
               </div>
-              <div class="tile-label"><span class="tile-status"></span><span id="localLabel">You</span></div>
+              <div class="tile-label"><span class="tile-status"></span><span id="localLabel">You / Вы</span></div>
             </article>
           </div>
 
-          <div class="toolbar" aria-label="Call controls">
-            <button class="tool active" id="micTool" aria-label="Mute microphone">
+          <div class="toolbar" aria-label="Call controls / Управление звонком">
+            <button class="tool active" id="micTool" aria-label="Mute microphone / Выключить микрофон">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                 <path d="M12 19v3"></path>
               </svg>
             </button>
-            <button class="tool off" id="cameraTool" aria-label="Turn camera on">
+            <button class="tool off" id="cameraTool" aria-label="Turn camera on / Включить камеру">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path>
               </svg>
             </button>
-            <button class="tool" id="shareTool" aria-label="Share screen">
+            <button class="tool" id="shareTool" aria-label="Share screen / Поделиться экраном">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <rect x="3" y="4" width="18" height="12" rx="2"></rect>
                 <path d="M8 20h8"></path>
                 <path d="M12 16v4"></path>
               </svg>
             </button>
-            <button class="tool" id="reactionTool" aria-label="Send reaction">
+            <button class="tool" id="reactionTool" aria-label="Send reaction / Отправить реакцию">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M7 11v8a2 2 0 0 0 2 2h7.2a2 2 0 0 0 1.9-1.37l2-6A2 2 0 0 0 18.2 11H14V5.5A2.5 2.5 0 0 0 11.5 3L7 11Z"></path>
                 <path d="M3 10h4v11H3z"></path>
               </svg>
             </button>
-            <button class="tool end" id="leaveCall" aria-label="Leave meeting">
+            <button class="tool end" id="leaveCall" aria-label="Leave meeting / Выйти из встречи">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.78 19.78 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.78 19.78 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.77.62 2.61a2 2 0 0 1-.45 2.11L8 9.72a16 16 0 0 0 6.28 6.28l1.28-1.28a2 2 0 0 1 2.11-.45c.84.29 1.71.5 2.61.62A2 2 0 0 1 22 16.92Z"></path>
               </svg>
@@ -1131,15 +1148,15 @@
 
         <aside class="side-panel">
           <div class="panel-tabs">
-            <button class="panel-tab active" data-panel="peoplePanel">People</button>
-            <button class="panel-tab" data-panel="chatPanel">Chat</button>
+            <button class="panel-tab active" data-panel="peoplePanel">People / Участники</button>
+            <button class="panel-tab" data-panel="chatPanel">Chat / Чат</button>
           </div>
 
           <div class="panel-body active" id="peoplePanel">
             <div class="people-list" id="peopleList">
               <div class="person" id="localPerson">
                 <div class="avatar" id="youAvatar">VS</div>
-                <div><strong id="youName">Vadim Shagidullin</strong><span id="youStatus">Host • Mic on</span></div>
+                <div><strong id="youName">Vadim Shagidullin</strong><span id="youStatus">You • Mic on / Вы • Микрофон включен</span></div>
                 <div class="person-icons">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
@@ -1154,14 +1171,14 @@
             <div class="chat-feed" id="chatFeed">
               <div class="message">
                 <strong>ClearCall</strong>
-                <div class="bubble">Messages sent here are shared with everyone in this room.</div>
+                <div class="bubble">Messages sent here are shared with everyone in this room. / Сообщения здесь видны всем в этой комнате.</div>
               </div>
             </div>
           </div>
 
           <form class="chat-composer" id="chatComposer">
-            <input id="chatInput" autocomplete="off" placeholder="Message everyone">
-            <button aria-label="Send message">
+            <input id="chatInput" autocomplete="off" placeholder="Message everyone / Сообщение всем">
+            <button aria-label="Send message / Отправить сообщение">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
                 <path d="M22 2 11 13"></path>
@@ -1173,7 +1190,7 @@
     </main>
   </div>
 
-  <div class="copy-toast" id="toast" role="status" aria-live="polite">Invite copied</div>
+  <div class="copy-toast" id="toast" role="status" aria-live="polite">Invite copied / Ссылка скопирована</div>
 
   <!-- Retained temporarily as reference while the live WebRTC app loads from app.js.
   <script>
