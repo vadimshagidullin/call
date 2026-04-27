@@ -1,27 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ClearCall - Video Meetings / Видеовстречи</title>
+  <title>Мама звонит - Video Meetings / Видеовстречи</title>
   <style>
     :root {
-      color-scheme: light;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --ink: #17202f;
-      --soft-ink: #405064;
-      --muted: #6d7a8d;
-      --line: #dfe6ef;
-      --paper: #ffffff;
-      --surface: #f7f9fc;
-      --sea: #178f92;
-      --sky: #4f73d9;
-      --violet: #8e6de8;
-      --lime: #58bd7b;
-      --rose: #d92d42;
-      --amber: #d99b2b;
-      --blush: #fff3f0;
-      --shadow: 0 22px 70px rgba(32, 48, 73, 0.12);
+      color-scheme: dark;
+      font-family: "Avenir Next", "Nunito Sans", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --ink: #241918;
+      --soft-ink: #574846;
+      --muted: #897875;
+      --line: #eadbd7;
+      --paper: #fff8f4;
+      --surface: #fff0ec;
+      --night: #070707;
+      --night-soft: #141210;
+      --sea: #3aa99c;
+      --sky: #d86a7c;
+      --violet: #9b73d9;
+      --lime: #66c68e;
+      --rose: #d84a60;
+      --amber: #d5a344;
+      --blush: #fff1ec;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
     }
 
     * { box-sizing: border-box; }
@@ -34,7 +36,7 @@
     body {
       margin: 0;
       background:
-        linear-gradient(135deg, #f4f7fb 0%, #eef7f5 48%, #f8f1f4 100%);
+        linear-gradient(135deg, #050505 0%, #11100f 54%, #091311 100%);
       color: var(--ink);
     }
 
@@ -60,8 +62,8 @@
       justify-content: space-between;
       gap: 18px;
       padding: 0 24px;
-      background: rgba(255, 255, 255, 0.82);
-      border-bottom: 1px solid var(--line);
+      background: rgba(8, 8, 8, 0.82);
+      border-bottom: 1px solid rgba(255, 248, 244, 0.12);
       backdrop-filter: blur(18px);
       position: sticky;
       top: 0;
@@ -82,11 +84,11 @@
       border-radius: 10px;
       background:
         linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 42%),
-        linear-gradient(135deg, var(--sea), var(--violet));
+        linear-gradient(135deg, var(--sky), var(--sea));
       display: grid;
       place-items: center;
       color: white;
-      box-shadow: 0 10px 24px rgba(79, 115, 217, 0.22);
+      box-shadow: 0 10px 28px rgba(216, 106, 124, 0.28);
       flex: 0 0 auto;
     }
 
@@ -95,11 +97,12 @@
       font-size: 18px;
       line-height: 1.1;
       letter-spacing: 0;
+      color: #fff8f4;
     }
 
     .brand span {
       display: block;
-      color: var(--muted);
+      color: rgba(255, 248, 244, 0.68);
       font-size: 12px;
       margin-top: 2px;
     }
@@ -108,7 +111,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      color: var(--soft-ink);
+      color: rgba(255, 248, 244, 0.78);
       font-size: 14px;
       min-width: 0;
       justify-content: flex-end;
@@ -120,15 +123,15 @@
       gap: 8px;
       min-width: 0;
       padding: 8px 11px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(255, 248, 244, 0.16);
       border-radius: 8px;
-      background: white;
-      color: var(--soft-ink);
+      background: rgba(255, 248, 244, 0.08);
+      color: rgba(255, 248, 244, 0.82);
       white-space: nowrap;
     }
 
     .room-code strong {
-      color: var(--ink);
+      color: #fff8f4;
       font-weight: 800;
     }
 
@@ -137,11 +140,11 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(255, 248, 244, 0.16);
       border-radius: 999px;
-      background: white;
+      background: rgba(255, 248, 244, 0.08);
       padding: 0 12px;
-      color: var(--soft-ink);
+      color: rgba(255, 248, 244, 0.86);
       font-size: 13px;
       font-weight: 800;
       white-space: nowrap;
@@ -172,10 +175,10 @@
       min-height: 30px;
       display: inline-flex;
       align-items: center;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(255, 248, 244, 0.16);
       border-radius: 999px;
-      background: #fbfcff;
-      color: var(--muted);
+      background: rgba(255, 248, 244, 0.08);
+      color: rgba(255, 248, 244, 0.62);
       padding: 0 10px;
       font-size: 12px;
       font-weight: 800;
@@ -190,8 +193,8 @@
       opacity: 0;
       pointer-events: none;
       z-index: 20;
-      background: #17202f;
-      color: white;
+      background: #fff8f4;
+      color: var(--ink);
       border-radius: 999px;
       padding: 9px 14px;
       font-size: 13px;
@@ -236,7 +239,7 @@
       position: relative;
       min-height: 520px;
       background:
-        linear-gradient(180deg, rgba(23, 32, 47, 0.08), rgba(23, 32, 47, 0.20)),
+        linear-gradient(180deg, rgba(7, 7, 7, 0.08), rgba(7, 7, 7, 0.42)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='820' viewBox='0 0 1200 820'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%23087f8c'/%3E%3Cstop offset='.52' stop-color='%232864d9'/%3E%3Cstop offset='1' stop-color='%2351b56d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='820' fill='%23dfe8ef'/%3E%3Cpath d='M0 660 C190 560 330 740 520 630 C690 532 800 430 990 484 C1096 514 1150 480 1200 440 L1200 820 L0 820 Z' fill='url(%23a)' opacity='.42'/%3E%3Ccircle cx='210' cy='188' r='148' fill='%23fff' opacity='.22'/%3E%3Ccircle cx='1005' cy='162' r='214' fill='%23fff' opacity='.16'/%3E%3Crect x='95' y='96' width='392' height='244' rx='24' fill='%23ffffff' opacity='.18'/%3E%3Crect x='565' y='136' width='520' height='318' rx='28' fill='%23ffffff' opacity='.14'/%3E%3Crect x='156' y='404' width='325' height='214' rx='24' fill='%23111827' opacity='.12'/%3E%3Crect x='578' y='532' width='260' height='156' rx='22' fill='%23ffffff' opacity='.16'/%3E%3C/svg%3E");
       background-size: cover;
       background-position: center;
@@ -248,7 +251,7 @@
     .camera-frame {
       position: absolute;
       inset: 22px;
-      background: #17202f;
+      background: #11100f;
       border-radius: 8px;
       overflow: hidden;
       display: grid;
@@ -275,7 +278,7 @@
       color: white;
       text-align: center;
       background:
-        linear-gradient(155deg, rgba(23, 143, 146, 0.9), rgba(142, 109, 232, 0.76)),
+        linear-gradient(155deg, rgba(216, 106, 124, 0.88), rgba(58, 169, 156, 0.78)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='700' viewBox='0 0 900 700'%3E%3Crect width='900' height='700' fill='none'/%3E%3Ccircle cx='445' cy='250' r='92' fill='%23ffffff' opacity='.28'/%3E%3Cpath d='M262 566c28-112 101-168 183-168s156 56 184 168' fill='%23ffffff' opacity='.24'/%3E%3Cpath d='M126 177c86-58 185-88 299-88 128 0 249 38 349 108' stroke='%23fff' stroke-width='18' opacity='.18' fill='none' stroke-linecap='round'/%3E%3Cpath d='M172 246c76-50 162-76 258-76 102 0 198 30 282 89' stroke='%23fff' stroke-width='16' opacity='.18' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-size: cover;
       background-position: center;
@@ -329,15 +332,17 @@
       align-content: center;
       gap: 24px;
       background:
-        linear-gradient(180deg, rgba(255, 243, 240, 0.55), rgba(255, 255, 255, 0.92)),
-        #fbfcfe;
+        linear-gradient(180deg, rgba(255, 241, 236, 0.88), rgba(255, 248, 244, 0.96)),
+        var(--paper);
     }
 
     .setup-copy h2 {
       margin: 0;
-      font-size: clamp(30px, 5vw, 46px);
-      line-height: 1;
+      font-size: 44px;
+      line-height: 1.04;
       letter-spacing: 0;
+      font-family: "Avenir Next", "Nunito Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      font-weight: 750;
     }
 
     .setup-copy p {
@@ -400,7 +405,7 @@
     .btn.primary {
       background: var(--sky);
       color: white;
-      box-shadow: 0 12px 28px rgba(79, 115, 217, 0.22);
+      box-shadow: 0 12px 28px rgba(216, 106, 124, 0.26);
     }
 
     .btn.secondary {
@@ -505,10 +510,10 @@
     .tile {
       position: relative;
       overflow: hidden;
-      background: #17202f;
-      border: 1px solid rgba(32, 48, 73, 0.12);
+      background: #11100f;
+      border: 1px solid rgba(255, 248, 244, 0.12);
       min-height: 210px;
-      box-shadow: 0 16px 38px rgba(32, 48, 73, 0.11);
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.24);
     }
 
     .tile.large {
@@ -554,25 +559,25 @@
 
     .tile:nth-child(1) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(23, 143, 146, 0.86), rgba(79, 115, 217, 0.74)),
+        linear-gradient(150deg, rgba(216, 106, 124, 0.84), rgba(58, 169, 156, 0.76)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%232864d9'/%3E%3Ccircle cx='350' cy='180' r='76' fill='%23fff' opacity='.25'/%3E%3Cpath d='M210 420c26-94 80-141 140-141s114 47 140 141' fill='%23fff' opacity='.23'/%3E%3Cpath d='M74 96h210v126H74zM418 118h196v112H418zM98 305h142v82H98z' fill='%23fff' opacity='.12'/%3E%3C/svg%3E");
     }
 
     .tile:nth-child(2) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(81, 181, 109, 0.86), rgba(8, 127, 140, 0.78)),
+        linear-gradient(150deg, rgba(99, 198, 142, 0.84), rgba(58, 169, 156, 0.78)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%23087f8c'/%3E%3Ccircle cx='344' cy='176' r='74' fill='%23fff' opacity='.25'/%3E%3Cpath d='M206 420c25-92 78-137 138-137s113 45 138 137' fill='%23fff' opacity='.23'/%3E%3Cpath d='M505 68c52 36 86 88 102 154M155 70c-48 40-76 89-86 148' stroke='%23fff' opacity='.18' stroke-width='18' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     }
 
     .tile:nth-child(3) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(226, 167, 46, 0.9), rgba(217, 45, 66, 0.72)),
+        linear-gradient(150deg, rgba(213, 163, 68, 0.88), rgba(216, 74, 96, 0.72)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%23e2a72e'/%3E%3Ccircle cx='348' cy='178' r='74' fill='%23fff' opacity='.26'/%3E%3Cpath d='M210 420c26-94 80-140 139-140s113 46 139 140' fill='%23fff' opacity='.24'/%3E%3Cpath d='M73 360c122-82 232-102 330-60 74 31 150 22 224-27' stroke='%23fff' stroke-width='18' opacity='.17' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     }
 
     .tile:nth-child(4) .participant-art {
       background-image:
-        linear-gradient(150deg, rgba(64, 80, 100, 0.88), rgba(79, 115, 217, 0.74)),
+        linear-gradient(150deg, rgba(34, 30, 28, 0.9), rgba(155, 115, 217, 0.72)),
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='500' viewBox='0 0 700 500'%3E%3Crect width='700' height='500' fill='%23374151'/%3E%3Ccircle cx='350' cy='180' r='76' fill='%23fff' opacity='.24'/%3E%3Cpath d='M210 420c26-94 80-141 140-141s114 47 140 141' fill='%23fff' opacity='.22'/%3E%3Cpath d='M132 104h436M132 146h290M132 188h350' stroke='%23fff' opacity='.15' stroke-width='18' stroke-linecap='round'/%3E%3C/svg%3E");
     }
 
@@ -612,7 +617,7 @@
       padding: 8px 10px;
       border-radius: 8px;
       color: white;
-      background: rgba(23, 32, 47, 0.62);
+      background: rgba(17, 16, 15, 0.68);
       backdrop-filter: blur(12px);
       font-size: 13px;
       font-weight: 800;
@@ -635,7 +640,7 @@
       padding: 12px;
       background: white;
       border: 1px solid var(--line);
-      box-shadow: 0 14px 36px rgba(32, 48, 73, 0.08);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
     }
 
     .tool {
@@ -675,7 +680,7 @@
       left: 50%;
       transform: translateX(-50%);
       white-space: nowrap;
-      background: #17202f;
+      background: #11100f;
       color: white;
       border-radius: 6px;
       padding: 6px 8px;
@@ -690,7 +695,7 @@
       grid-template-rows: auto 1fr auto;
       background: white;
       border: 1px solid var(--line);
-      box-shadow: 0 14px 36px rgba(32, 48, 73, 0.08);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
       overflow: hidden;
     }
 
@@ -756,7 +761,7 @@
       place-items: center;
       color: white;
       font-weight: 900;
-      background: linear-gradient(135deg, var(--sea), var(--sky));
+      background: linear-gradient(135deg, var(--sky), var(--sea));
       flex: 0 0 auto;
     }
 
@@ -983,8 +988,8 @@
           </svg>
         </div>
         <div>
-          <h1>ClearCall</h1>
-          <span>Secure internet video meetings / Безопасные видеовстречи</span>
+          <h1>Мама звонит</h1>
+          <span>Family video calls / Семейные видеозвонки</span>
         </div>
       </div>
       <div class="room-meta">
@@ -1035,8 +1040,8 @@
 
           <aside class="setup-pane">
             <div class="setup-copy">
-              <h2>Start the call room / Начать комнату звонка</h2>
-              <p>Join with your camera and microphone preferences already set. / Войдите с уже выбранными настройками камеры и микрофона.</p>
+              <h2>Start family call / Начать семейный звонок</h2>
+              <p>Join when you are ready to talk. / Входите, когда готовы поговорить.</p>
             </div>
 
             <div class="field">
@@ -1170,7 +1175,7 @@
           <div class="panel-body" id="chatPanel">
             <div class="chat-feed" id="chatFeed">
               <div class="message">
-                <strong>ClearCall</strong>
+                <strong>Мама звонит</strong>
                 <div class="bubble">Messages sent here are shared with everyone in this room. / Сообщения здесь видны всем в этой комнате.</div>
               </div>
             </div>

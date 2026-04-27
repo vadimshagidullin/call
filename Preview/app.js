@@ -39,6 +39,7 @@ const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
 const newRoomSetup = document.getElementById("newRoomSetup");
 
+const appDisplayName = "Мама звонит";
 const initialParams = new URLSearchParams(window.location.search);
 let roomId = initialParams.get("room") || "CC-4829";
 let signalingUrl = normalizeSignalingUrl(initialParams.get("signal") || window.CLEARCALL_SIGNALING_URL || "");
@@ -793,8 +794,8 @@ function renderPeople() {
 }
 
 function addSystemMessage(text) {
-  console.info(`[ClearCall] ${text}`);
-  addChatMessage(text, "ClearCall", false);
+  console.info(`[${appDisplayName}] ${text}`);
+  addChatMessage(text, appDisplayName, false);
 }
 
 function addChatMessage(text, name, mine) {
