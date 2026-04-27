@@ -89,6 +89,7 @@ function decodeFrames(socket, chunk) {
   while (socket.buffer.length >= 2) {
     const first = socket.buffer[0];
     const second = socket.buffer[1];
+    const fin = Boolean(first & 0x80);
     const opcode = first & 0x0f;
     const masked = Boolean(second & 0x80);
     let length = second & 0x7f;
@@ -127,8 +128,25 @@ function decodeFrames(socket, chunk) {
       continue;
     }
 
-    if (opcode === 0x1) {
+    if (opcode === 0x1 && fin) {
       messages.push(payload.toString("utf8"));
+      continue;
+    }
+
+    if (opcode === 0x1 && !fin) {
+      socket.fragments = [payload];
+      socket.fragmentOpcode = opcode;
+      continue;
+    }
+
+    if (opcode === 0x0 && socket.fragments) {
+      socket.fragments.push(payload);
+      if (fin) {
+        const message = Buffer.concat(socket.fragments).toString("utf8");
+        socket.fragments = null;
+        socket.fragmentOpcode = null;
+        messages.push(message);
+      }
     }
   }
 

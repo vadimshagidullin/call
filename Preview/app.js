@@ -502,6 +502,11 @@ function handleServerMessage(message) {
 
   if (message.type === "chat") {
     addChatMessage(message.text, message.name, message.from === myId);
+    return;
+  }
+
+  if (message.type === "error") {
+    addSystemMessage(`Server error: ${message.message}`);
   }
 }
 
