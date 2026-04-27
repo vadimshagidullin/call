@@ -163,6 +163,20 @@
       background: var(--rose);
     }
 
+    .build-tag {
+      min-height: 30px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f8fafc;
+      color: var(--muted);
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
     .copy-toast {
       position: fixed;
       left: 50%;
@@ -876,6 +890,7 @@
       .brand span,
       #callClock,
       #connectionStatus,
+      #buildTag,
       .room-code span {
         display: none;
       }
@@ -957,6 +972,7 @@
       </div>
       <div class="room-meta">
         <span class="connection-state ready" id="connectionStatus">Ready</span>
+        <span class="build-tag" id="buildTag">v-local</span>
         <span id="callClock">00:00</span>
         <button class="room-code" id="copyInvite" aria-label="Copy meeting invite">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">

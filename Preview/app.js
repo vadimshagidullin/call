@@ -33,6 +33,7 @@ const toast = document.getElementById("toast");
 const cameraHelp = document.getElementById("cameraHelp");
 const videoGrid = document.getElementById("videoGrid");
 const roomCode = document.getElementById("roomCode");
+const buildTag = document.getElementById("buildTag");
 const cameraSelect = document.getElementById("cameraSelect");
 const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
@@ -41,6 +42,7 @@ const newRoomSetup = document.getElementById("newRoomSetup");
 const initialParams = new URLSearchParams(window.location.search);
 let roomId = initialParams.get("room") || "CC-4829";
 let signalingUrl = normalizeSignalingUrl(initialParams.get("signal") || window.CLEARCALL_SIGNALING_URL || "");
+const buildId = window.CLEARCALL_BUILD || "local";
 const icons = {
   micOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg>`,
   micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m2 2 20 20"></path><path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path><path d="M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M19 10v2a7 7 0 0 1-.7 3.05"></path><path d="M5 10v2a7 7 0 0 0 7 7v3"></path></svg>`,
@@ -64,6 +66,7 @@ const peers = new Map();
 const participants = new Map();
 
 roomCode.textContent = roomId;
+buildTag.textContent = `v-${buildId}`;
 if (!new URLSearchParams(window.location.search).has("room")) {
   window.history.replaceState({}, "", `${window.location.pathname}?room=${encodeURIComponent(roomId)}`);
 }
@@ -153,6 +156,11 @@ function createNewRoom() {
 function setConnectionState(text, tone = "ready") {
   connectionStatus.textContent = text;
   connectionStatus.className = `connection-state ${tone}`;
+}
+
+function switchToChat() {
+  const chatTab = document.querySelector('[data-panel="chatPanel"]');
+  chatTab?.click();
 }
 
 function setButtonState(button, enabled, onLabel, offLabel) {
@@ -724,6 +732,7 @@ function renderPeople() {
 }
 
 function addSystemMessage(text) {
+  console.info(`[ClearCall] ${text}`);
   addChatMessage(text, "ClearCall", false);
 }
 
@@ -760,6 +769,8 @@ async function joinCall() {
   connectSocket();
   startClock();
   renderPeople();
+  addSystemMessage(`Client ${buildId} joined locally.`);
+  switchToChat();
 }
 
 function leaveCall() {

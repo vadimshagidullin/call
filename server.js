@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "Preview");
 const port = Number(process.env.PORT || 4173);
+const buildId = (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_REF || "local").slice(0, 12);
 const rooms = new Map();
 
 function contentType(filePath) {
@@ -25,7 +26,16 @@ function sendFile(req, res) {
 
   if (url.pathname === "/healthz") {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
-    res.end(JSON.stringify({ ok: true }));
+    res.end(JSON.stringify({ ok: true, build: buildId }));
+    return;
+  }
+
+  if (url.pathname === "/runtime-config.js") {
+    res.writeHead(200, {
+      "Content-Type": "text/javascript; charset=utf-8",
+      "Cache-Control": "no-store"
+    });
+    res.end(`window.CLEARCALL_SIGNALING_URL = "";\nwindow.CLEARCALL_BUILD = ${JSON.stringify(buildId)};\n`);
     return;
   }
 
