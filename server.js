@@ -207,6 +207,14 @@ function handleMessage(socket, messageText) {
     return;
   }
 
+  if (message.type === "sync-peers") {
+    const peers = [...(rooms.get(socket.roomId)?.values() || [])]
+      .filter(peer => peer.clientId !== socket.clientId)
+      .map(publicPeer);
+    send(socket, { type: "peers", peers });
+    return;
+  }
+
   if (message.type === "chat") {
     const text = String(message.text || "").trim().slice(0, 800);
     if (text) {

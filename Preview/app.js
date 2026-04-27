@@ -57,6 +57,7 @@ let elapsed = 0;
 let socket = null;
 let myId = null;
 let reconnectTimer = null;
+let peerSyncTimer = null;
 let devicesReady = false;
 
 const peers = new Map();
@@ -443,8 +444,9 @@ function handleServerMessage(message) {
     participants.clear();
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
-      createPeer(peer, true);
+      ensurePeer(peer);
     }
+    startPeerSync();
     renderPeople();
     addSystemMessage(`Joined room ${message.roomId}.`);
     return;
@@ -452,9 +454,18 @@ function handleServerMessage(message) {
 
   if (message.type === "peer-joined") {
     participants.set(message.peer.id, message.peer);
-    createPeer(message.peer, false);
+    ensurePeer(message.peer);
     renderPeople();
     addSystemMessage(`${message.peer.name} joined.`);
+    return;
+  }
+
+  if (message.type === "peers") {
+    for (const peer of message.peers) {
+      participants.set(peer.id, peer);
+      ensurePeer(peer);
+    }
+    renderPeople();
     return;
   }
 
@@ -473,7 +484,11 @@ function handleServerMessage(message) {
   }
 
   if (message.type === "signal") {
-    handleSignal(message.from, message.data);
+    handleSignal(message.from, message.data).catch(error => {
+      console.error("WebRTC signal failed", error);
+      addSystemMessage(`Connection setup error: ${error.message}`);
+      setConnectionState("Connection error", "error");
+    });
     return;
   }
 
@@ -491,12 +506,33 @@ function peerConfig() {
   };
 }
 
-function createPeer(peer, shouldOffer) {
+function shouldOfferTo(peerId) {
+  return Boolean(myId && myId > peerId);
+}
+
+function startPeerSync() {
+  clearInterval(peerSyncTimer);
+  send({ type: "sync-peers" });
+  peerSyncTimer = setInterval(() => {
+    if (inCall) send({ type: "sync-peers" });
+  }, 3500);
+}
+
+function ensurePeer(peer) {
+  const state = createPeer(peer);
+  if (shouldOfferTo(peer.id) && !state.madeOffer && state.connection.signalingState === "stable") {
+    makeOffer(peer.id);
+  }
+  return state;
+}
+
+function createPeer(peer) {
   if (peers.has(peer.id)) return peers.get(peer.id);
 
   const connection = new RTCPeerConnection(peerConfig());
   const remoteStream = new MediaStream();
   const tile = createPeerTile(peer, remoteStream);
+  addSystemMessage(`Connecting to ${peer.name}.`);
 
   if (localStream) {
     localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
@@ -522,22 +558,21 @@ function createPeer(peer, shouldOffer) {
     tile.classList.toggle("connecting", ["connecting", "new", "checking"].includes(connection.connectionState));
     if (["connecting", "new", "checking"].includes(connection.connectionState)) {
       setConnectionState("Connecting peer", "connecting");
+      updatePeerStatus(peer.id, connection.connectionState);
     }
     if (["failed", "closed", "disconnected"].includes(connection.connectionState)) {
       updatePeerStatus(peer.id, connection.connectionState);
       setConnectionState("Peer disconnected", "error");
+      addSystemMessage(`${peer.name} connection is ${connection.connectionState}.`);
     } else if (connection.connectionState === "connected") {
       updatePeerStatus(peer.id, "Connected");
       setConnectionState("Peer connected", "connected");
+      addSystemMessage(`${peer.name} connected.`);
     }
   });
 
-  const state = { id: peer.id, connection, remoteStream, tile, pendingCandidates: [] };
+  const state = { id: peer.id, connection, remoteStream, tile, pendingCandidates: [], madeOffer: false };
   peers.set(peer.id, state);
-
-  if (shouldOffer) {
-    makeOffer(peer.id);
-  }
 
   return state;
 }
@@ -546,7 +581,10 @@ async function makeOffer(peerId) {
   const peer = peers.get(peerId);
   if (!peer) return;
 
-  const offer = await peer.connection.createOffer();
+  peer.madeOffer = true;
+  const participant = participants.get(peerId);
+  addSystemMessage(`Sending connection offer${participant ? ` to ${participant.name}` : ""}.`);
+  const offer = await peer.connection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
   await peer.connection.setLocalDescription(offer);
   send({ type: "signal", to: peerId, data: { description: peer.connection.localDescription } });
 }
@@ -554,9 +592,10 @@ async function makeOffer(peerId) {
 async function handleSignal(peerId, data) {
   let peer = peers.get(peerId);
   const participant = participants.get(peerId) || { id: peerId, name: "Guest", initials: "G", micOn: true, cameraOn: true };
-  if (!peer) peer = createPeer(participant, false);
+  if (!peer) peer = createPeer(participant);
 
   if (data.description) {
+    addSystemMessage(`Received ${data.description.type} from ${participant.name}.`);
     await peer.connection.setRemoteDescription(data.description);
     while (peer.pendingCandidates.length) {
       await peer.connection.addIceCandidate(peer.pendingCandidates.shift());
@@ -727,6 +766,7 @@ function leaveCall() {
   inCall = false;
   clearInterval(callTimer);
   clearTimeout(reconnectTimer);
+  clearInterval(peerSyncTimer);
   callClock.textContent = "00:00";
   setConnectionState("Ready", "ready");
   callScreen.classList.remove("active");
