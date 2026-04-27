@@ -511,7 +511,7 @@ function handleServerMessage(message) {
     participants.clear();
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
-      ensurePeer(peer, true);
+      ensurePeer(peer, shouldInitiateOffer(peer.id));
     }
     startPeerSync();
     renderPeople();
@@ -521,7 +521,7 @@ function handleServerMessage(message) {
 
   if (message.type === "peer-joined") {
     participants.set(message.peer.id, message.peer);
-    ensurePeer(message.peer, true);
+    ensurePeer(message.peer, shouldInitiateOffer(message.peer.id));
     renderPeople();
     addSystemMessage(t(`${message.peer.name} joined.`, `${message.peer.name} вошел в комнату.`));
     return;
@@ -530,7 +530,7 @@ function handleServerMessage(message) {
   if (message.type === "peers") {
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
-      ensurePeer(peer, true);
+      ensurePeer(peer, shouldInitiateOffer(peer.id));
     }
     renderPeople();
     return;
@@ -586,9 +586,13 @@ function startPeerSync() {
   }, 3500);
 }
 
+function shouldInitiateOffer(peerId) {
+  return Boolean(myId && peerId && myId < peerId);
+}
+
 function ensurePeer(peer, shouldOffer = false) {
   const state = createPeer(peer);
-  if (shouldOffer && !state.madeOffer && state.connection.signalingState === "stable") {
+  if (shouldOffer && !state.madeOffer && !state.makingOffer && state.connection.signalingState === "stable") {
     makeOffer(peer.id);
   }
   return state;
@@ -639,7 +643,16 @@ function createPeer(peer) {
     }
   });
 
-  const state = { id: peer.id, connection, remoteStream, tile, pendingCandidates: [], madeOffer: false };
+  const state = {
+    id: peer.id,
+    connection,
+    remoteStream,
+    tile,
+    pendingCandidates: [],
+    madeOffer: false,
+    makingOffer: false,
+    ignoreOffer: false
+  };
   peers.set(peer.id, state);
 
   return state;
@@ -648,15 +661,24 @@ function createPeer(peer) {
 async function makeOffer(peerId) {
   const peer = peers.get(peerId);
   if (!peer) return;
+  if (peer.makingOffer || peer.connection.signalingState !== "stable") return;
 
-  peer.madeOffer = true;
-  const participant = participants.get(peerId);
-  addSystemMessage(participant
-    ? t(`Sending connection offer to ${participant.name}.`, `Отправляем предложение соединения для ${participant.name}.`)
-    : t("Sending connection offer.", "Отправляем предложение соединения."));
-  const offer = await peer.connection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
-  await peer.connection.setLocalDescription(offer);
-  send({ type: "signal", to: peerId, data: { description: peer.connection.localDescription } });
+  peer.makingOffer = true;
+  try {
+    peer.madeOffer = true;
+    const participant = participants.get(peerId);
+    addSystemMessage(participant
+      ? t(`Sending connection offer to ${participant.name}.`, `Отправляем предложение соединения для ${participant.name}.`)
+      : t("Sending connection offer.", "Отправляем предложение соединения."));
+    const offer = await peer.connection.createOffer({ offerToReceiveAudio: true, offerToReceiveVideo: true });
+    await peer.connection.setLocalDescription(offer);
+    send({ type: "signal", to: peerId, data: { description: peer.connection.localDescription } });
+  } catch (error) {
+    peer.madeOffer = false;
+    throw error;
+  } finally {
+    peer.makingOffer = false;
+  }
 }
 
 async function handleSignal(peerId, data) {
@@ -665,19 +687,47 @@ async function handleSignal(peerId, data) {
   if (!peer) peer = createPeer(participant);
 
   if (data.description) {
-    addSystemMessage(t(`Received ${data.description.type} from ${participant.name}.`, `Получено ${descriptionTypeRu(data.description.type)} от ${participant.name}.`));
-    await peer.connection.setRemoteDescription(data.description);
-    while (peer.pendingCandidates.length) {
-      await peer.connection.addIceCandidate(peer.pendingCandidates.shift());
+    const { connection } = peer;
+    const description = data.description;
+    const isOffer = description.type === "offer";
+    const isAnswer = description.type === "answer";
+    const offerCollision = isOffer && (peer.makingOffer || connection.signalingState !== "stable");
+
+    if (offerCollision && shouldInitiateOffer(peerId)) {
+      peer.ignoreOffer = true;
+      console.warn("Ignored colliding offer from", peerId);
+      return;
     }
-    if (data.description.type === "offer") {
-      const answer = await peer.connection.createAnswer();
-      await peer.connection.setLocalDescription(answer);
-      send({ type: "signal", to: peerId, data: { description: peer.connection.localDescription } });
+
+    if (offerCollision) {
+      if (connection.signalingState !== "have-local-offer") {
+        console.warn("Ignored duplicate offer from", peerId, "while", connection.signalingState);
+        return;
+      }
+      await connection.setLocalDescription({ type: "rollback" });
+    }
+
+    if (isAnswer && connection.signalingState !== "have-local-offer") {
+      console.warn("Ignored stale answer from", peerId, "while", connection.signalingState);
+      return;
+    }
+
+    peer.ignoreOffer = false;
+    addSystemMessage(t(`Received ${description.type} from ${participant.name}.`, `Получено ${descriptionTypeRu(description.type)} от ${participant.name}.`));
+    await connection.setRemoteDescription(description);
+    while (peer.pendingCandidates.length) {
+      await connection.addIceCandidate(peer.pendingCandidates.shift());
+    }
+    if (isOffer) {
+      const answer = await connection.createAnswer();
+      await connection.setLocalDescription(answer);
+      send({ type: "signal", to: peerId, data: { description: connection.localDescription } });
     }
   }
 
   if (data.candidate) {
+    if (peer.ignoreOffer) return;
+
     if (!peer.connection.remoteDescription) {
       peer.pendingCandidates.push(data.candidate);
       return;
