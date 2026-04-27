@@ -25,6 +25,8 @@ Use `New room` on the join screen to generate a fresh invite link. Opening `Prev
 
 ## Publish the web app
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/vadimshagidullin/call)
+
 Deploy it as a Node web service, not static hosting, because WebRTC signaling uses the `/ws` WebSocket endpoint.
 
 - Start command: `npm start`
