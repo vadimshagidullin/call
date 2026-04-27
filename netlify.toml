@@ -1,0 +1,6 @@
+[build]
+  publish = "Preview"
+  command = "npm run build:netlify"
+
+[build.environment]
+  NODE_VERSION = "22"

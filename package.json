@@ -6,7 +6,8 @@
   "description": "ClearCall WebRTC video rooms with a small Node WebSocket signaling server.",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check Preview/app.js"
+    "check": "node --check server.js && node --check Preview/app.js && node --check scripts/write-netlify-config.mjs",
+    "build:netlify": "node scripts/write-netlify-config.mjs && npm run check"
   },
   "engines": {
     "node": ">=20"

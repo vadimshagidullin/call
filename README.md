@@ -35,6 +35,14 @@ Deploy it as a Node web service, not static hosting, because WebRTC signaling us
 
 This repo includes `render.yaml` for Render-style blueprint deploys and a `Dockerfile` for container hosts.
 
+## Netlify frontend plus signaling backend
+
+Netlify can serve the `Preview` frontend, but calls still need a separate WebSocket signaling server. Deploy this repo once as a Node web service on Render, Railway, Fly.io, or another host that supports WebSockets, then set this Netlify environment variable:
+
+- `SIGNALING_URL=wss://YOUR-SIGNALING-SERVICE/ws`
+
+The included `netlify.toml` publishes `Preview` and writes `Preview/runtime-config.js` during build from `SIGNALING_URL`. After setting the variable, trigger a new Netlify deploy. Without this, the UI loads on Netlify, but participants cannot discover each other, so you only see yourself and no remote audio.
+
 ## Production pieces still needed
 
 - Authentication and user identity.

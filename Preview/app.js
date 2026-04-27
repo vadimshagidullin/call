@@ -38,7 +38,9 @@ const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
 const newRoomSetup = document.getElementById("newRoomSetup");
 
-let roomId = new URLSearchParams(window.location.search).get("room") || "CC-4829";
+const initialParams = new URLSearchParams(window.location.search);
+let roomId = initialParams.get("room") || "CC-4829";
+let signalingUrl = normalizeSignalingUrl(initialParams.get("signal") || window.CLEARCALL_SIGNALING_URL || "");
 const icons = {
   micOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg>`,
   micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m2 2 20 20"></path><path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path><path d="M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M19 10v2a7 7 0 0 1-.7 3.05"></path><path d="M5 10v2a7 7 0 0 0 7 7v3"></path></svg>`,
@@ -67,6 +69,9 @@ if (!new URLSearchParams(window.location.search).has("room")) {
 if (window.location.protocol === "file:") {
   setConnectionState("Use localhost", "error");
   cameraHelp.textContent = "Open http://localhost:4173 to use WebRTC rooms and signaling.";
+} else if (window.location.hostname.endsWith(".netlify.app") && !signalingUrl) {
+  setConnectionState("Set signaling URL", "error");
+  cameraHelp.textContent = "Netlify is serving the page, but live calls need SIGNALING_URL set to a WebSocket backend.";
 }
 
 function initialsFrom(name) {
@@ -90,17 +95,36 @@ function escapeHtml(value) {
   }[char]));
 }
 
+function normalizeSignalingUrl(value) {
+  if (!value) return "";
+
+  try {
+    const url = new URL(value, window.location.href);
+    if (url.protocol === "https:") url.protocol = "wss:";
+    if (url.protocol === "http:") url.protocol = "ws:";
+    if (!["ws:", "wss:"].includes(url.protocol)) return "";
+    if (url.pathname === "/" || !url.pathname) url.pathname = "/ws";
+    return url.toString();
+  } catch (error) {
+    return "";
+  }
+}
+
 function roomUrl() {
   const base = window.location.protocol === "file:"
     ? "http://localhost:4173/"
     : `${window.location.origin}${window.location.pathname}`;
-  return `${base}?room=${encodeURIComponent(roomId)}`;
+  const params = new URLSearchParams();
+  params.set("room", roomId);
+  if (signalingUrl) params.set("signal", signalingUrl);
+  return `${base}?${params.toString()}`;
 }
 
 function updateRoomUrl() {
   roomCode.textContent = roomId;
   const params = new URLSearchParams(window.location.search);
   params.set("room", roomId);
+  if (signalingUrl) params.set("signal", signalingUrl);
   window.history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
 }
 
@@ -361,6 +385,7 @@ function showToast(message) {
 }
 
 function wsUrl() {
+  if (signalingUrl) return signalingUrl;
   if (window.location.protocol === "file:") return "ws://localhost:4173/ws";
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${protocol}//${window.location.host}/ws`;
@@ -374,6 +399,11 @@ function send(message) {
 
 function connectSocket() {
   if (socket && [WebSocket.OPEN, WebSocket.CONNECTING].includes(socket.readyState)) return;
+  if (window.location.hostname.endsWith(".netlify.app") && !signalingUrl) {
+    setConnectionState("No signaling URL", "error");
+    showToast("Set SIGNALING_URL on Netlify");
+    return;
+  }
 
   socket = new WebSocket(wsUrl());
   setConnectionState("Connecting", "connecting");
