@@ -39,7 +39,7 @@ const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
 const newRoomSetup = document.getElementById("newRoomSetup");
 
-const appDisplayName = "Мама звонит";
+const appDisplayName = "mamazvonit";
 const initialParams = new URLSearchParams(window.location.search);
 let roomId = initialParams.get("room") || "CC-4829";
 let signalingUrl = normalizeSignalingUrl(initialParams.get("signal") || window.CLEARCALL_SIGNALING_URL || "");
