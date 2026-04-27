@@ -452,7 +452,7 @@ function handleServerMessage(message) {
     participants.clear();
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
-      ensurePeer(peer);
+      ensurePeer(peer, true);
     }
     startPeerSync();
     renderPeople();
@@ -462,7 +462,7 @@ function handleServerMessage(message) {
 
   if (message.type === "peer-joined") {
     participants.set(message.peer.id, message.peer);
-    ensurePeer(message.peer);
+    ensurePeer(message.peer, true);
     renderPeople();
     addSystemMessage(`${message.peer.name} joined.`);
     return;
@@ -471,7 +471,7 @@ function handleServerMessage(message) {
   if (message.type === "peers") {
     for (const peer of message.peers) {
       participants.set(peer.id, peer);
-      ensurePeer(peer);
+      ensurePeer(peer, true);
     }
     renderPeople();
     return;
@@ -514,10 +514,6 @@ function peerConfig() {
   };
 }
 
-function shouldOfferTo(peerId) {
-  return Boolean(myId && myId > peerId);
-}
-
 function startPeerSync() {
   clearInterval(peerSyncTimer);
   send({ type: "sync-peers" });
@@ -526,9 +522,9 @@ function startPeerSync() {
   }, 3500);
 }
 
-function ensurePeer(peer) {
+function ensurePeer(peer, shouldOffer = false) {
   const state = createPeer(peer);
-  if (shouldOfferTo(peer.id) && !state.madeOffer && state.connection.signalingState === "stable") {
+  if (shouldOffer && !state.madeOffer && state.connection.signalingState === "stable") {
     makeOffer(peer.id);
   }
   return state;
