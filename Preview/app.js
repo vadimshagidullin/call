@@ -65,6 +65,7 @@ let devicesReady = false;
 
 const peers = new Map();
 const participants = new Map();
+const senderKinds = new WeakMap();
 
 roomCode.textContent = roomId;
 buildTag.textContent = `v-${buildId}`;
@@ -358,19 +359,61 @@ function attachLocalStream(stream) {
   loadDevices();
 }
 
+function addLocalTrack(connection, track) {
+  const sender = connection.addTrack(track, localStream);
+  senderKinds.set(sender, track.kind);
+  return sender;
+}
+
+function senderForKind(connection, kind) {
+  return connection.getSenders().find(sender => sender.track?.kind === kind || senderKinds.get(sender) === kind);
+}
+
+async function replacePeerTrack(kind, track) {
+  for (const peer of peers.values()) {
+    const sender = senderForKind(peer.connection, kind);
+    if (sender) {
+      await sender.replaceTrack(track);
+      senderKinds.set(sender, kind);
+    } else if (track && localStream) {
+      addLocalTrack(peer.connection, track);
+    }
+  }
+}
+
 async function replacePeerTracks() {
   for (const peer of peers.values()) {
-    const senders = peer.connection.getSenders();
     const tracks = localStream?.getTracks() || [];
     for (const track of tracks) {
-      const sender = senders.find(item => item.track?.kind === track.kind);
+      const sender = senderForKind(peer.connection, track.kind);
       if (sender) {
         await sender.replaceTrack(track);
+        senderKinds.set(sender, track.kind);
       } else {
-        peer.connection.addTrack(track, localStream);
+        addLocalTrack(peer.connection, track);
       }
     }
   }
+}
+
+function stopLocalVideoTracks() {
+  const videoTracks = localStream?.getVideoTracks() || [];
+  videoTracks.forEach(track => {
+    track.enabled = false;
+    track.stop();
+    localStream?.removeTrack(track);
+  });
+  previewVideo.srcObject = localStream;
+  localVideo.srcObject = localStream;
+}
+
+function stopLocalMedia() {
+  localStream?.getTracks().forEach(track => track.stop());
+  localStream = null;
+  previewVideo.srcObject = null;
+  localVideo.srcObject = null;
+  previewFrame.classList.remove("camera-ready");
+  localTile.classList.remove("camera-ready");
 }
 
 async function ensureLocalMedia(options = { audio: true, video: true }) {
@@ -408,18 +451,21 @@ async function ensureLocalMedia(options = { audio: true, video: true }) {
 }
 
 async function setCamera(nextValue) {
-  nextValue = true;
-
   if (nextValue) {
+    cameraOn = true;
     const available = await ensureLocalMedia({ audio: inCall, video: true });
     if (!available || !hasVideoTrack()) {
       cameraOn = false;
       syncDeviceStatus();
       return;
     }
+    syncDeviceStatus();
+    return;
   }
 
-  cameraOn = nextValue;
+  cameraOn = false;
+  stopLocalVideoTracks();
+  await replacePeerTrack("video", null);
   syncDeviceStatus();
 }
 
@@ -609,7 +655,7 @@ function createPeer(peer) {
   addSystemMessage(t(`Connecting to ${peer.name}.`, `Подключаемся к ${peer.name}.`));
 
   if (localStream) {
-    localStream.getTracks().forEach(track => connection.addTrack(track, localStream));
+    localStream.getTracks().forEach(track => addLocalTrack(connection, track));
   }
 
   connection.addEventListener("icecandidate", event => {
@@ -622,7 +668,12 @@ function createPeer(peer) {
     if (!remoteStream.getTracks().includes(event.track)) {
       remoteStream.addTrack(event.track);
     }
-    tile.classList.add("camera-ready");
+    if (event.track.kind === "video") {
+      tile.classList.add("camera-ready");
+      event.track.addEventListener("ended", () => {
+        tile.classList.remove("camera-ready");
+      });
+    }
     updatePeerStatus(peer.id, t(`Receiving ${event.track.kind}`, `Получаем ${mediaKindLabel(event.track.kind)}`));
     addSystemMessage(t(`Receiving ${event.track.kind} from ${peer.name}.`, `Получаем ${mediaKindLabel(event.track.kind)} от ${peer.name}.`));
     playPeerMedia(tile);
@@ -791,6 +842,8 @@ function updatePeerTile(peer) {
   if (status) {
     status.textContent = peer.cameraOn ? t("Connected", "Подключено") : t("Camera is off", "Камера выключена");
   }
+  const hasLiveVideo = Boolean(tile.querySelector("video")?.srcObject?.getVideoTracks().some(track => track.readyState === "live"));
+  tile.classList.toggle("camera-ready", peer.cameraOn && hasLiveVideo);
 }
 
 function updatePeerStatus(peerId, status) {
@@ -811,7 +864,9 @@ function removePeer(peerId) {
 }
 
 function syncVideoGrid() {
-  localTile.classList.toggle("large", peers.size === 0);
+  const participantCount = peers.size + 1;
+  videoGrid.dataset.count = String(Math.min(participantCount, 4));
+  localTile.classList.toggle("large", participantCount === 1);
 }
 
 function renderPeople() {
@@ -862,6 +917,7 @@ function addChatMessage(text, name, mine) {
 async function joinCall() {
   syncIdentity();
   setConnectionState(t("Checking devices", "Проверяем устройства"), "connecting");
+  cameraOn = true;
   const mediaReady = await ensureLocalMedia({ audio: true, video: true });
   if (!mediaReady) {
     showToast(t("Camera or microphone blocked", "Камера или микрофон заблокированы"));
@@ -905,6 +961,10 @@ function leaveCall() {
     removePeer(peerId);
   }
   participants.clear();
+  cameraOn = false;
+  micOn = true;
+  stopLocalMedia();
+  syncDeviceStatus();
   renderPeople();
 }
 
@@ -923,8 +983,8 @@ function sendReaction() {
   document.querySelector('[data-panel="chatPanel"]').click();
 }
 
-previewCamera.addEventListener("click", () => setCamera(true));
-cameraTool.addEventListener("click", () => setCamera(true));
+previewCamera.addEventListener("click", () => setCamera(!cameraOn));
+cameraTool.addEventListener("click", () => setCamera(!cameraOn));
 previewMic.addEventListener("click", toggleMic);
 micTool.addEventListener("click", toggleMic);
 displayName.addEventListener("input", syncIdentity);

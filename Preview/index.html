@@ -507,21 +507,45 @@
     .call-screen.active {
       display: grid;
       grid-template-columns: 1fr;
+      height: calc(100vh - 104px);
+      min-height: 520px;
     }
 
     .meeting {
       min-height: 0;
       display: grid;
-      grid-template-rows: 1fr;
+      grid-template-rows: minmax(0, 1fr) auto;
       gap: 16px;
+      height: 100%;
     }
 
     .video-grid {
       min-height: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-auto-rows: minmax(210px, 1fr);
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: minmax(0, 1fr);
       gap: 14px;
+    }
+
+    .video-grid[data-count="1"] {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+    }
+
+    .video-grid[data-count="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: 1fr;
+    }
+
+    .video-grid[data-count="3"],
+    .video-grid[data-count="4"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+
+    .video-grid[data-count="3"] .tile:nth-child(3) {
+      grid-column: 1 / -1;
     }
 
     .tile {
@@ -529,13 +553,14 @@
       overflow: hidden;
       background: #050509;
       border: 1px solid rgba(255, 248, 244, 0.12);
-      min-height: 210px;
+      min-height: 0;
+      border-radius: 8px;
       box-shadow: 0 16px 44px rgba(0, 0, 0, 0.24);
     }
 
     .tile.large {
-      grid-column: span 2;
-      min-height: 320px;
+      grid-column: auto;
+      min-height: 0;
     }
 
     .tile video {
@@ -657,6 +682,7 @@
       padding: 12px;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--line);
+      border-radius: 8px;
       box-shadow: 0 14px 36px rgba(0, 0, 0, 0.14);
     }
 
@@ -881,10 +907,11 @@
     .field,
     .device-row,
     .device-selectors,
-    .toolbar,
     .side-panel,
     .participant-art > div,
     .tile-label,
+    #shareTool,
+    #reactionTool,
     .copy-toast {
       display: none !important;
     }
@@ -936,6 +963,7 @@
 
       .call-screen.active {
         grid-template-columns: 1fr;
+        height: calc(100vh - 100px);
       }
 
       .side-panel {
@@ -982,33 +1010,42 @@
       }
 
       .call-screen.active {
-        display: block;
+        display: grid;
+        height: calc(100dvh - 82px);
+        min-height: 0;
       }
 
       .meeting {
         display: grid;
-        grid-template-rows: auto auto;
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 8px;
+        height: 100%;
       }
 
       .video-grid {
-        grid-template-columns: 1fr;
-        grid-auto-rows: minmax(250px, auto);
+        gap: 8px;
+        grid-auto-rows: minmax(0, 1fr);
       }
 
       .tile.large {
         grid-column: auto;
-        min-height: 250px;
+        min-height: 0;
       }
 
       .toolbar {
-        justify-content: space-between;
-        gap: 6px;
-        padding: 10px;
+        min-height: 58px;
+        justify-content: center;
+        gap: 10px;
+        padding: 5px;
       }
 
       .tool {
-        width: 47px;
-        height: 47px;
+        width: 48px;
+        height: 48px;
+      }
+
+      .tool[aria-label]:hover::after {
+        display: none;
       }
     }
   </style>
@@ -1138,7 +1175,7 @@
 
       <section class="call-screen" id="callScreen" aria-label="Video call room / Комната видеозвонка">
         <div class="meeting">
-          <div class="video-grid" id="videoGrid">
+          <div class="video-grid" id="videoGrid" data-count="1">
             <article class="tile large" id="localTile">
               <video id="localVideo" autoplay muted playsinline></video>
               <div class="participant-art">
