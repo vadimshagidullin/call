@@ -197,7 +197,10 @@ async function pushJson(path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) {
-    throw new Error(data.error || "Push request failed");
+    const error = new Error(data.error || "Push request failed");
+    error.status = response.status;
+    error.details = data;
+    throw error;
   }
   return data;
 }
@@ -207,6 +210,11 @@ function urlBase64ToUint8Array(value) {
   const base64 = `${value}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
   const raw = window.atob(base64);
   return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+}
+
+function uint8ArrayToUrlBase64(value) {
+  const raw = String.fromCharCode(...new Uint8Array(value));
+  return window.btoa(raw).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function savedPushName() {
@@ -244,11 +252,21 @@ async function enablePushNotifications() {
 
   try {
     const registration = await pushRegistration();
-    const existing = await registration.pushManager.getSubscription();
     const { publicKey } = await pushJson("/api/push/public-key");
-    const subscription = existing || await registration.pushManager.subscribe({
+    const publicKeyBytes = urlBase64ToUint8Array(publicKey);
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (
+      subscription?.options?.applicationServerKey
+      && uint8ArrayToUrlBase64(subscription.options.applicationServerKey) !== publicKey
+    ) {
+      await subscription.unsubscribe();
+      subscription = null;
+    }
+
+    subscription = subscription || await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey)
+      applicationServerKey: publicKeyBytes
     });
 
     await pushJson("/api/push/subscribe", {
@@ -257,7 +275,10 @@ async function enablePushNotifications() {
     });
     showToast(t(`${name} can receive alerts`, `${name} получает уведомления`));
   } catch (error) {
-    showToast(t("Could not enable alerts", "Не удалось включить уведомления"));
+    showToast(t(
+      `Could not enable alerts: ${error.message}`,
+      `Не удалось включить уведомления: ${error.message}`
+    ));
     console.warn("Push subscribe failed", error);
   }
 }
@@ -270,10 +291,18 @@ async function invitePushContact() {
 
   try {
     const { contacts = [] } = await pushJson("/api/push/contacts");
+    if (contacts.length === 0) {
+      showToast(t(
+        "No phones have alerts enabled yet",
+        "Пока нет телефонов с включёнными уведомлениями"
+      ));
+      return;
+    }
+
     const names = contacts.map(contact => contact.name).join(", ");
     const targetValue = window.prompt(
-      names ? `Кого позвать? Доступные: ${names}` : "Кого позвать? Сначала человек должен включить уведомления на своём телефоне.",
-      names ? contacts[0].name : ""
+      `Кого позвать? Доступные: ${names}`,
+      contacts[0].name
     );
     const targetName = String(targetValue || "").trim().replace(/\s+/g, " ").slice(0, 48);
     if (!targetName) return;
@@ -294,7 +323,10 @@ async function invitePushContact() {
       ? t(`Alert sent to ${targetName}`, `Уведомление отправлено: ${targetName}`)
       : t("No active devices", "Нет активных устройств"));
   } catch (error) {
-    showToast(t("Could not send alert", "Не удалось отправить уведомление"));
+    const message = error.message === "Contact is not subscribed yet"
+      ? t("That person has not enabled alerts yet", "Этот человек ещё не включил уведомления")
+      : t(`Could not send alert: ${error.message}`, `Не удалось отправить уведомление: ${error.message}`);
+    showToast(message);
     console.warn("Push invite failed", error);
   }
 }
@@ -623,7 +655,7 @@ function startClock() {
 function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 1600);
+  setTimeout(() => toast.classList.remove("show"), Math.min(4200, Math.max(1800, message.length * 55)));
 }
 
 function wsUrl() {

@@ -11,6 +11,7 @@ const port = Number(process.env.PORT || 4173);
 const buildId = (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_REF || "local").slice(0, 12);
 const rooms = new Map();
 const pushContacts = new Map();
+const pushStorePath = process.env.PUSH_STORE_FILE || path.join(__dirname, ".data", "push-subscriptions.json");
 const generatedVapidKeys = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
   ? null
   : webPush.generateVAPIDKeys();
@@ -82,6 +83,44 @@ function publicContact(contact) {
   };
 }
 
+function serializePushContacts() {
+  return [...pushContacts.values()].map(contact => ({
+    name: contact.name,
+    subscriptions: [...contact.subscriptions.values()]
+  }));
+}
+
+function loadPushContacts() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(pushStorePath, "utf8"));
+    if (!Array.isArray(saved.contacts)) return;
+
+    for (const item of saved.contacts) {
+      const name = cleanContactName(item.name);
+      if (!name || !Array.isArray(item.subscriptions)) continue;
+
+      const subscriptions = new Map();
+      for (const subscription of item.subscriptions) {
+        if (validSubscription(subscription)) subscriptions.set(subscription.endpoint, subscription);
+      }
+      if (subscriptions.size > 0) pushContacts.set(contactKey(name), { name, subscriptions });
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") console.warn("Could not load push subscriptions", error.message);
+  }
+}
+
+function savePushContacts() {
+  try {
+    fs.mkdirSync(path.dirname(pushStorePath), { recursive: true });
+    const tempPath = `${pushStorePath}.tmp`;
+    fs.writeFileSync(tempPath, JSON.stringify({ contacts: serializePushContacts() }, null, 2));
+    fs.renameSync(tempPath, pushStorePath);
+  } catch (error) {
+    console.warn("Could not save push subscriptions", error.message);
+  }
+}
+
 function safeInviteUrl(value, req) {
   try {
     const url = new URL(String(value || ""), `https://${req.headers.host}`);
@@ -102,6 +141,8 @@ function validSubscription(subscription) {
     && typeof subscription.keys.auth === "string"
   );
 }
+
+loadPushContacts();
 
 async function handlePushApi(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
@@ -136,6 +177,7 @@ async function handlePushApi(req, res) {
       contact.name = name;
       contact.subscriptions.set(body.subscription.endpoint, body.subscription);
       pushContacts.set(key, contact);
+      savePushContacts();
       sendJson(res, 200, { ok: true, contact: publicContact(contact) });
     } catch (error) {
       sendJson(res, 400, { ok: false, error: error.message });
@@ -182,7 +224,13 @@ async function handlePushApi(req, res) {
 
       staleEndpoints.forEach(endpoint => contact.subscriptions.delete(endpoint));
       if (contact.subscriptions.size === 0) pushContacts.delete(contactKey(contact.name));
-      sendJson(res, 200, { ok: sent > 0, sent, failed });
+      if (staleEndpoints.length > 0) savePushContacts();
+      sendJson(res, 200, {
+        ok: sent > 0,
+        sent,
+        failed,
+        error: sent > 0 ? undefined : "No active subscribed devices"
+      });
     } catch (error) {
       sendJson(res, 400, { ok: false, error: error.message });
     }
