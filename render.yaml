@@ -3,7 +3,7 @@ services:
     name: clearcall
     runtime: node
     plan: free
-    buildCommand: npm run check
+    buildCommand: npm ci && npm run check
     startCommand: npm start
     healthCheckPath: /healthz
     envVars:
