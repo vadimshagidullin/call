@@ -35,6 +35,19 @@ Deploy it as a Node web service, not static hosting, because WebRTC signaling us
 
 This repo includes `render.yaml` for Render-style blueprint deploys and a `Dockerfile` for container hosts.
 
+## Web push invites
+
+The web app includes a first-pass Web Push flow for inviting a specific person without SMS, iMessage, or WhatsApp.
+
+1. Deploy the Node service over HTTPS.
+2. Run `npm run push:keys` locally.
+3. Add the printed `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT` values to the Render service environment.
+4. Redeploy the service.
+5. On each recipient phone, open the deployed site once, tap `Enable Alerts`, enter that person's name, and allow notifications.
+6. From another device, tap `Invite Person`, choose the saved name, and send a short message with the current room link.
+
+On iPhone, Web Push is most reliable when the site is added to the Home Screen and opened as a web app. Subscriptions are stored in server memory for this MVP, so a service restart or redeploy can require recipients to tap `Enable Alerts` again.
+
 ## Netlify frontend plus signaling backend
 
 Netlify can serve the `Preview` frontend, but calls still need a separate WebSocket signaling server. Deploy this repo once as a Node web service on Render, Railway, Fly.io, or another host that supports WebSockets, then set this Netlify environment variable:
@@ -49,6 +62,6 @@ The included `netlify.toml` publishes `Preview` and writes `Preview/runtime-conf
 - A backend for accounts, contacts, message persistence, and delivery receipts.
 - Production WebSocket or MQTT transport for realtime messages.
 - Production WebRTC signaling, STUN/TURN configuration, and media session handling for internet calls.
-- Push notifications for offline message and incoming call alerts.
+- Durable storage for push subscriptions, contacts, and message history.
 - End-to-end encryption if private communications are required.
 # call

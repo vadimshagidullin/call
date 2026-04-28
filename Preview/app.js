@@ -38,6 +38,9 @@ const cameraSelect = document.getElementById("cameraSelect");
 const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
 const newRoomSetup = document.getElementById("newRoomSetup");
+const enablePushSetup = document.getElementById("enablePushSetup");
+const invitePushSetup = document.getElementById("invitePushSetup");
+const invitePushTool = document.getElementById("invitePushTool");
 
 const appDisplayName = "Мама звонит";
 const initialParams = new URLSearchParams(window.location.search);
@@ -171,6 +174,129 @@ function roomUrl() {
   params.set("room", roomId);
   if (signalingUrl) params.set("signal", signalingUrl);
   return `${base}?${params.toString()}`;
+}
+
+function pushAvailable() {
+  return window.location.protocol !== "file:"
+    && "serviceWorker" in navigator
+    && "PushManager" in window
+    && "Notification" in window;
+}
+
+function pushApi(path) {
+  return path;
+}
+
+async function pushJson(path, options = {}) {
+  const response = await fetch(pushApi(path), {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {})
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false) {
+    throw new Error(data.error || "Push request failed");
+  }
+  return data;
+}
+
+function urlBase64ToUint8Array(value) {
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  const base64 = `${value}${padding}`.replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  return Uint8Array.from([...raw].map(char => char.charCodeAt(0)));
+}
+
+function savedPushName() {
+  return localStorage.getItem("mamazvonit.pushName") || "";
+}
+
+function askPushName() {
+  const value = window.prompt("Как подписать этот телефон? Например: Света", savedPushName());
+  const name = String(value || "").trim().replace(/\s+/g, " ").slice(0, 48);
+  if (name) localStorage.setItem("mamazvonit.pushName", name);
+  return name;
+}
+
+async function pushRegistration() {
+  await navigator.serviceWorker.register("/service-worker.js");
+  return navigator.serviceWorker.ready;
+}
+
+async function enablePushNotifications() {
+  if (!pushAvailable()) {
+    showToast(t("Open the deployed site for alerts", "Откройте сайт на Render для уведомлений"));
+    return;
+  }
+
+  const name = askPushName();
+  if (!name) return;
+
+  const permission = Notification.permission === "granted"
+    ? "granted"
+    : await Notification.requestPermission();
+  if (permission !== "granted") {
+    showToast(t("Alerts were not allowed", "Уведомления не разрешены"));
+    return;
+  }
+
+  try {
+    const registration = await pushRegistration();
+    const existing = await registration.pushManager.getSubscription();
+    const { publicKey } = await pushJson("/api/push/public-key");
+    const subscription = existing || await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(publicKey)
+    });
+
+    await pushJson("/api/push/subscribe", {
+      method: "POST",
+      body: JSON.stringify({ name, subscription })
+    });
+    showToast(t(`${name} can receive alerts`, `${name} получает уведомления`));
+  } catch (error) {
+    showToast(t("Could not enable alerts", "Не удалось включить уведомления"));
+    console.warn("Push subscribe failed", error);
+  }
+}
+
+async function invitePushContact() {
+  if (!pushAvailable()) {
+    showToast(t("Open the deployed site for alerts", "Откройте сайт на Render для уведомлений"));
+    return;
+  }
+
+  try {
+    const { contacts = [] } = await pushJson("/api/push/contacts");
+    const names = contacts.map(contact => contact.name).join(", ");
+    const targetValue = window.prompt(
+      names ? `Кого позвать? Доступные: ${names}` : "Кого позвать? Сначала человек должен включить уведомления на своём телефоне.",
+      names ? contacts[0].name : ""
+    );
+    const targetName = String(targetValue || "").trim().replace(/\s+/g, " ").slice(0, 48);
+    if (!targetName) return;
+
+    const messageValue = window.prompt("Текст уведомления", `${targetName}, привет, зайди в звонок`);
+    const message = String(messageValue || `${targetName}, привет, зайди в звонок`).trim().slice(0, 180);
+    const result = await pushJson("/api/push/invite", {
+      method: "POST",
+      body: JSON.stringify({
+        targetName,
+        message,
+        roomId,
+        url: roomUrl()
+      })
+    });
+
+    showToast(result.sent > 0
+      ? t(`Alert sent to ${targetName}`, `Уведомление отправлено: ${targetName}`)
+      : t("No active devices", "Нет активных устройств"));
+  } catch (error) {
+    showToast(t("Could not send alert", "Не удалось отправить уведомление"));
+    console.warn("Push invite failed", error);
+  }
 }
 
 function updateRoomUrl() {
@@ -993,6 +1119,9 @@ document.getElementById("leaveCall").addEventListener("click", leaveCall);
 document.getElementById("copyInvite").addEventListener("click", copyInvite);
 document.getElementById("copyInviteSetup").addEventListener("click", copyInvite);
 newRoomSetup.addEventListener("click", createNewRoom);
+enablePushSetup.addEventListener("click", enablePushNotifications);
+invitePushSetup.addEventListener("click", invitePushContact);
+invitePushTool.addEventListener("click", invitePushContact);
 reactionTool.addEventListener("click", sendReaction);
 cameraSelect.addEventListener("change", changeInputDevice);
 microphoneSelect.addEventListener("change", changeInputDevice);

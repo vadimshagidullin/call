@@ -3,12 +3,26 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import webPush from "web-push";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "Preview");
 const port = Number(process.env.PORT || 4173);
 const buildId = (process.env.RENDER_GIT_COMMIT || process.env.COMMIT_REF || "local").slice(0, 12);
 const rooms = new Map();
+const pushContacts = new Map();
+const generatedVapidKeys = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY
+  ? null
+  : webPush.generateVAPIDKeys();
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || generatedVapidKeys.publicKey;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || generatedVapidKeys.privateKey;
+const vapidSubject = process.env.VAPID_SUBJECT || "mailto:hello@example.com";
+
+webPush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+
+if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  console.warn("Using temporary VAPID keys. Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY on Render for persistent push subscriptions.");
+}
 
 function contentType(filePath) {
   const ext = path.extname(filePath).toLowerCase();
@@ -21,8 +35,173 @@ function contentType(filePath) {
   }[ext] || "application/octet-stream";
 }
 
+function sendJson(res, status, body) {
+  res.writeHead(status, {
+    "Content-Type": "application/json; charset=utf-8",
+    "Cache-Control": "no-store"
+  });
+  res.end(JSON.stringify(body));
+}
+
+function readJson(req, maxBytes = 65536) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+
+    req.on("data", chunk => {
+      body += chunk;
+      if (Buffer.byteLength(body) > maxBytes) {
+        reject(new Error("Request body is too large"));
+        req.destroy();
+      }
+    });
+
+    req.on("end", () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch {
+        reject(new Error("Invalid JSON"));
+      }
+    });
+
+    req.on("error", reject);
+  });
+}
+
+function contactKey(name) {
+  return String(name || "").trim().toLocaleLowerCase("ru-RU");
+}
+
+function cleanContactName(name) {
+  return String(name || "").trim().replace(/\s+/g, " ").slice(0, 48);
+}
+
+function publicContact(contact) {
+  return {
+    name: contact.name,
+    devices: contact.subscriptions.size
+  };
+}
+
+function safeInviteUrl(value, req) {
+  try {
+    const url = new URL(String(value || ""), `https://${req.headers.host}`);
+    if (!["http:", "https:"].includes(url.protocol)) throw new Error("Invalid protocol");
+    return url.toString();
+  } catch {
+    return `https://${req.headers.host}/`;
+  }
+}
+
+function validSubscription(subscription) {
+  return Boolean(
+    subscription
+    && typeof subscription.endpoint === "string"
+    && subscription.endpoint.startsWith("https://")
+    && subscription.keys
+    && typeof subscription.keys.p256dh === "string"
+    && typeof subscription.keys.auth === "string"
+  );
+}
+
+async function handlePushApi(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (req.method === "GET" && url.pathname === "/api/push/public-key") {
+    sendJson(res, 200, { publicKey: vapidPublicKey });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/push/contacts") {
+    sendJson(res, 200, {
+      contacts: [...pushContacts.values()].map(publicContact).sort((a, b) => a.name.localeCompare(b.name))
+    });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/push/subscribe") {
+    try {
+      const body = await readJson(req);
+      const name = cleanContactName(body.name);
+      if (!name) {
+        sendJson(res, 400, { ok: false, error: "Contact name is required" });
+        return;
+      }
+      if (!validSubscription(body.subscription)) {
+        sendJson(res, 400, { ok: false, error: "Valid push subscription is required" });
+        return;
+      }
+
+      const key = contactKey(name);
+      const contact = pushContacts.get(key) || { name, subscriptions: new Map() };
+      contact.name = name;
+      contact.subscriptions.set(body.subscription.endpoint, body.subscription);
+      pushContacts.set(key, contact);
+      sendJson(res, 200, { ok: true, contact: publicContact(contact) });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/push/invite") {
+    try {
+      const body = await readJson(req);
+      const targetName = cleanContactName(body.targetName);
+      const contact = pushContacts.get(contactKey(targetName));
+      if (!contact) {
+        sendJson(res, 404, { ok: false, error: "Contact is not subscribed yet" });
+        return;
+      }
+
+      const message = String(body.message || `${targetName}, зайди в звонок`).trim().slice(0, 180);
+      const roomId = String(body.roomId || "CC-4829").slice(0, 64);
+      const payload = JSON.stringify({
+        title: "Мама звонит",
+        body: message,
+        url: safeInviteUrl(body.url, req),
+        tag: `mamazvonit-${roomId}`,
+        roomId
+      });
+
+      let sent = 0;
+      let failed = 0;
+      const staleEndpoints = [];
+      for (const [endpoint, subscription] of contact.subscriptions) {
+        try {
+          await webPush.sendNotification(subscription, payload);
+          sent += 1;
+        } catch (error) {
+          failed += 1;
+          if (error.statusCode === 404 || error.statusCode === 410) {
+            staleEndpoints.push(endpoint);
+          } else {
+            console.warn("Push notification failed", error.statusCode || error.message);
+          }
+        }
+      }
+
+      staleEndpoints.forEach(endpoint => contact.subscriptions.delete(endpoint));
+      if (contact.subscriptions.size === 0) pushContacts.delete(contactKey(contact.name));
+      sendJson(res, 200, { ok: sent > 0, sent, failed });
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  sendJson(res, 404, { ok: false, error: "Not found" });
+}
+
 function sendFile(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (url.pathname.startsWith("/api/push/")) {
+    handlePushApi(req, res).catch(error => {
+      console.error("Push API failed", error);
+      sendJson(res, 500, { ok: false, error: "Server error" });
+    });
+    return;
+  }
 
   if (url.pathname === "/healthz") {
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
@@ -55,7 +234,12 @@ function sendFile(req, res) {
       return;
     }
 
-    res.writeHead(200, { "Content-Type": contentType(filePath) });
+    const headers = { "Content-Type": contentType(filePath) };
+    if (path.basename(filePath) === "service-worker.js") {
+      headers["Cache-Control"] = "no-store";
+      headers["Service-Worker-Allowed"] = "/";
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }

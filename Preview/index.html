@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Мама звонит</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#000000">
   <style>
     :root {
       color-scheme: dark;
@@ -410,6 +413,14 @@
 
     #copyInviteSetup {
       order: 3;
+    }
+
+    #enablePushSetup {
+      order: 4;
+    }
+
+    #invitePushSetup {
+      order: 5;
     }
 
     .btn:hover {
@@ -911,8 +922,7 @@
     .participant-art > div,
     .tile-label,
     #shareTool,
-    #reactionTool,
-    .copy-toast {
+    #reactionTool {
       display: none !important;
     }
 
@@ -1168,6 +1178,20 @@
                 </svg>
                 New Room
               </button>
+              <button class="btn secondary" id="enablePushSetup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path d="M10 20a2 2 0 0 0 4 0"></path>
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                </svg>
+                Enable Alerts
+              </button>
+              <button class="btn secondary" id="invitePushSetup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path d="M22 2 11 13"></path>
+                  <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
+                </svg>
+                Invite Person
+              </button>
             </div>
           </aside>
         </div>
@@ -1213,6 +1237,12 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="M7 11v8a2 2 0 0 0 2 2h7.2a2 2 0 0 0 1.9-1.37l2-6A2 2 0 0 0 18.2 11H14V5.5A2.5 2.5 0 0 0 11.5 3L7 11Z"></path>
                 <path d="M3 10h4v11H3z"></path>
+              </svg>
+            </button>
+            <button class="tool" id="invitePushTool" aria-label="Invite person / Позвать человека">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path d="M22 2 11 13"></path>
+                <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
               </svg>
             </button>
             <button class="tool end" id="leaveCall" aria-label="Leave meeting / Выйти из встречи">

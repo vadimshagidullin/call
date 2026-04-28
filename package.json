@@ -6,10 +6,14 @@
   "description": "ClearCall WebRTC video rooms with a small Node WebSocket signaling server.",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check Preview/app.js && node --check scripts/write-netlify-config.mjs",
-    "build:netlify": "node scripts/write-netlify-config.mjs && npm run check"
+    "check": "node --check server.js && node --check Preview/app.js && node --check Preview/service-worker.js && node --check scripts/write-netlify-config.mjs && node --check scripts/generate-vapid-keys.mjs",
+    "build:netlify": "node scripts/write-netlify-config.mjs && npm run check",
+    "push:keys": "node scripts/generate-vapid-keys.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
   }
 }
