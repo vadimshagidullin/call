@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>mamazvonit - Video Meetings / Видеовстречи</title>
+  <title>Мама звонит</title>
   <style>
     :root {
       color-scheme: dark;
@@ -230,7 +230,7 @@
       width: min(1120px, 100%);
       min-height: min(720px, calc(100vh - 112px));
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) 420px;
+      grid-template-columns: 1fr;
       background: var(--paper);
       border: 1px solid rgba(255, 255, 255, 0.12);
       box-shadow: var(--shadow);
@@ -330,10 +330,10 @@
     }
 
     .setup-pane {
-      padding: 28px;
+      padding: 22px 28px 30px;
       display: grid;
       align-content: center;
-      gap: 24px;
+      gap: 0;
       background:
         linear-gradient(180deg, rgba(17, 17, 24, 0.96), rgba(8, 8, 12, 0.98)),
         #08080c;
@@ -383,7 +383,9 @@
     }
 
     .join-actions {
-      display: grid;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 12px;
     }
 
@@ -400,6 +402,14 @@
       color: var(--ink);
       font-weight: 800;
       transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+    }
+
+    #newRoomSetup {
+      order: 2;
+    }
+
+    #copyInviteSetup {
+      order: 3;
     }
 
     .btn:hover {
@@ -496,12 +506,13 @@
 
     .call-screen.active {
       display: grid;
+      grid-template-columns: 1fr;
     }
 
     .meeting {
       min-height: 0;
       display: grid;
-      grid-template-rows: 1fr auto;
+      grid-template-rows: 1fr;
       gap: 16px;
     }
 
@@ -862,6 +873,22 @@
       display: none !important;
     }
 
+    .brand span,
+    .room-meta,
+    .camera-fallback > div,
+    .preview-actions,
+    .setup-copy,
+    .field,
+    .device-row,
+    .device-selectors,
+    .toolbar,
+    .side-panel,
+    .participant-art > div,
+    .tile-label,
+    .copy-toast {
+      display: none !important;
+    }
+
     svg {
       width: 20px;
       height: 20px;
@@ -996,12 +1023,12 @@
           </svg>
         </div>
         <div>
-          <h1>mamazvonit</h1>
-          <span>Family video calls / Семейные видеозвонки</span>
+          <h1>Мама звонит</h1>
+          <span></span>
         </div>
       </div>
       <div class="room-meta">
-        <span class="connection-state ready" id="connectionStatus">Ready / Готово</span>
+        <span class="connection-state ready" id="connectionStatus"></span>
         <span class="build-tag" id="buildTag">v-local</span>
         <span id="callClock">00:00</span>
         <button class="room-code" id="copyInvite" aria-label="Copy meeting invite / Скопировать приглашение">
@@ -1009,7 +1036,7 @@
             <rect x="9" y="9" width="13" height="13" rx="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
-          <span>Room / Комната</span>
+          <span></span>
           <strong id="roomCode">CC-4829</strong>
         </button>
       </div>
@@ -1024,8 +1051,8 @@
               <div class="camera-fallback">
                 <div>
                   <div class="fallback-initials" id="previewInitials">VS</div>
-                  <h2>Camera preview / Предпросмотр камеры</h2>
-                  <p id="cameraHelp">Use the camera button below to preview your video before joining. / Нажмите кнопку камеры ниже, чтобы проверить видео перед входом.</p>
+                  <h2></h2>
+                  <p id="cameraHelp"></p>
                 </div>
               </div>
             </div>
@@ -1048,37 +1075,37 @@
 
           <aside class="setup-pane">
             <div class="setup-copy">
-              <h2>Start family call / Начать семейный звонок</h2>
-              <p>Join when you are ready to talk. / Входите, когда готовы поговорить.</p>
+              <h2></h2>
+              <p></p>
             </div>
 
             <div class="field">
-              <label for="displayName">Display name / Имя на экране</label>
-              <input id="displayName" value="Vadim Shagidullin" maxlength="36">
+              <label for="displayName"></label>
+              <input id="displayName" value="Мама звонит" maxlength="36">
             </div>
 
             <div class="device-row" aria-label="Device status / Статус устройств">
-              <div class="status-pill"><span class="dot" id="micDot"></span><span id="micStatus">Microphone on / Микрофон включен</span></div>
-              <div class="status-pill"><span class="dot off" id="cameraDot"></span><span id="cameraStatus">Camera off / Камера выключена</span></div>
+              <div class="status-pill"><span class="dot" id="micDot"></span><span id="micStatus"></span></div>
+              <div class="status-pill"><span class="dot off" id="cameraDot"></span><span id="cameraStatus"></span></div>
             </div>
 
             <div class="device-selectors" aria-label="Device selection / Выбор устройств">
               <div class="field compact">
-                <label for="cameraSelect">Camera / Камера</label>
+                <label for="cameraSelect"></label>
                 <select id="cameraSelect">
-                  <option value="">Default camera / Камера по умолчанию</option>
+                  <option value=""></option>
                 </select>
               </div>
               <div class="field compact">
-                <label for="microphoneSelect">Microphone / Микрофон</label>
+                <label for="microphoneSelect"></label>
                 <select id="microphoneSelect">
-                  <option value="">Default microphone / Микрофон по умолчанию</option>
+                  <option value=""></option>
                 </select>
               </div>
               <div class="field compact">
-                <label for="speakerSelect">Speaker / Динамик</label>
+                <label for="speakerSelect"></label>
                 <select id="speakerSelect">
-                  <option value="">Default speaker / Динамик по умолчанию</option>
+                  <option value=""></option>
                 </select>
               </div>
             </div>
@@ -1088,21 +1115,21 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path>
                 </svg>
-                Join meeting / Войти
+                Join Meeting
               </button>
               <button class="btn secondary" id="copyInviteSetup">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M10 13a5 5 0 0 0 7.07 0l3.54-3.54a5 5 0 0 0-7.07-7.07L11.5 4.43"></path>
                   <path d="M14 11a5 5 0 0 0-7.07 0L3.39 14.54a5 5 0 0 0 7.07 7.07l2.04-2.04"></path>
                 </svg>
-                Copy invite / Скопировать ссылку
+                Copy Invite
               </button>
               <button class="btn secondary" id="newRoomSetup">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
                 </svg>
-                New room / Новая комната
+                New Room
               </button>
             </div>
           </aside>
@@ -1117,11 +1144,11 @@
               <div class="participant-art">
                 <div>
                   <div class="initials" id="localInitials">VS</div>
-                  <h3 id="localTileName">You / Вы</h3>
-                  <p id="localTileStatus">Waiting for media / Ожидание камеры и микрофона</p>
+                  <h3 id="localTileName"></h3>
+                  <p id="localTileStatus"></p>
                 </div>
               </div>
-              <div class="tile-label"><span class="tile-status"></span><span id="localLabel">You / Вы</span></div>
+              <div class="tile-label"><span class="tile-status"></span><span id="localLabel"></span></div>
             </article>
           </div>
 
@@ -1161,15 +1188,15 @@
 
         <aside class="side-panel">
           <div class="panel-tabs">
-            <button class="panel-tab active" data-panel="peoplePanel">People / Участники</button>
-            <button class="panel-tab" data-panel="chatPanel">Chat / Чат</button>
+            <button class="panel-tab active" data-panel="peoplePanel"></button>
+            <button class="panel-tab" data-panel="chatPanel"></button>
           </div>
 
           <div class="panel-body active" id="peoplePanel">
             <div class="people-list" id="peopleList">
               <div class="person" id="localPerson">
                 <div class="avatar" id="youAvatar">VS</div>
-                <div><strong id="youName">Vadim Shagidullin</strong><span id="youStatus">You • Mic on / Вы • Микрофон включен</span></div>
+                <div><strong id="youName"></strong><span id="youStatus"></span></div>
                 <div class="person-icons">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                     <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
@@ -1183,14 +1210,14 @@
           <div class="panel-body" id="chatPanel">
             <div class="chat-feed" id="chatFeed">
               <div class="message">
-                <strong>mamazvonit</strong>
-                <div class="bubble">Messages sent here are shared with everyone in this room. / Сообщения здесь видны всем в этой комнате.</div>
+                <strong>Мама звонит</strong>
+                <div class="bubble"></div>
               </div>
             </div>
           </div>
 
           <form class="chat-composer" id="chatComposer">
-            <input id="chatInput" autocomplete="off" placeholder="Message everyone / Сообщение всем">
+            <input id="chatInput" autocomplete="off" placeholder="">
             <button aria-label="Send message / Отправить сообщение">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                 <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
@@ -1203,247 +1230,8 @@
     </main>
   </div>
 
-  <div class="copy-toast" id="toast" role="status" aria-live="polite">Invite copied / Ссылка скопирована</div>
+  <div class="copy-toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Retained temporarily as reference while the live WebRTC app loads from app.js.
-  <script>
-    const joinScreen = document.getElementById("joinScreen");
-    const callScreen = document.getElementById("callScreen");
-    const displayName = document.getElementById("displayName");
-    const previewVideo = document.getElementById("previewVideo");
-    const localVideo = document.getElementById("localVideo");
-    const previewFrame = document.getElementById("previewFrame");
-    const localTile = document.getElementById("localTile");
-    const previewCamera = document.getElementById("previewCamera");
-    const cameraTool = document.getElementById("cameraTool");
-    const previewMic = document.getElementById("previewMic");
-    const micTool = document.getElementById("micTool");
-    const shareTool = document.getElementById("shareTool");
-    const reactionTool = document.getElementById("reactionTool");
-    const micDot = document.getElementById("micDot");
-    const cameraDot = document.getElementById("cameraDot");
-    const micStatus = document.getElementById("micStatus");
-    const cameraStatus = document.getElementById("cameraStatus");
-    const localTileStatus = document.getElementById("localTileStatus");
-    const localTileName = document.getElementById("localTileName");
-    const localLabel = document.getElementById("localLabel");
-    const localInitials = document.getElementById("localInitials");
-    const previewInitials = document.getElementById("previewInitials");
-    const youAvatar = document.getElementById("youAvatar");
-    const youName = document.getElementById("youName");
-    const youStatus = document.getElementById("youStatus");
-    const chatFeed = document.getElementById("chatFeed");
-    const chatComposer = document.getElementById("chatComposer");
-    const chatInput = document.getElementById("chatInput");
-    const callClock = document.getElementById("callClock");
-    const toast = document.getElementById("toast");
-    const cameraHelp = document.getElementById("cameraHelp");
-
-    let stream = null;
-    let cameraOn = false;
-    let micOn = true;
-    let inCall = false;
-    let callTimer = null;
-    let elapsed = 0;
-
-    const icons = {
-      micOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg>`,
-      micOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m2 2 20 20"></path><path d="M9 9v3a3 3 0 0 0 5.12 2.12"></path><path d="M15 9.34V5a3 3 0 0 0-5.94-.6"></path><path d="M19 10v2a7 7 0 0 1-.7 3.05"></path><path d="M5 10v2a7 7 0 0 0 7 7v3"></path></svg>`,
-      cameraOn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path></svg>`,
-      cameraOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M15 10.5 21 7v10l-6-3.5V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.5Z"></path><path d="m2 2 20 20"></path></svg>`
-    };
-
-    function initialsFrom(name) {
-      const parts = name.trim().split(/\s+/).filter(Boolean);
-      if (!parts.length) return "ME";
-      return parts.slice(0, 2).map(part => part[0].toUpperCase()).join("");
-    }
-
-    function setButtonState(button, enabled, onLabel, offLabel) {
-      button.classList.toggle("active", enabled);
-      button.classList.toggle("off", !enabled);
-      button.setAttribute("aria-label", enabled ? onLabel : offLabel);
-    }
-
-    function syncIdentity() {
-      const name = displayName.value.trim() || "Guest";
-      const initials = initialsFrom(name);
-      previewInitials.textContent = initials;
-      localInitials.textContent = initials;
-      youAvatar.textContent = initials;
-      youName.textContent = name;
-      localTileName.textContent = name;
-      localLabel.textContent = `${name} (you)`;
-    }
-
-    function syncDeviceStatus() {
-      micDot.classList.toggle("off", !micOn);
-      micStatus.textContent = micOn ? "Microphone on" : "Microphone muted";
-      cameraDot.classList.toggle("off", !cameraOn);
-      cameraStatus.textContent = cameraOn ? "Camera on" : "Camera off";
-      localTileStatus.textContent = cameraOn ? "Camera is on" : "Camera is off";
-      youStatus.textContent = micOn ? "Host • Mic on" : "Host • Muted";
-      previewMic.innerHTML = micOn ? icons.micOn : icons.micOff;
-      micTool.innerHTML = micOn ? icons.micOn : icons.micOff;
-      previewCamera.innerHTML = cameraOn ? icons.cameraOn : icons.cameraOff;
-      cameraTool.innerHTML = cameraOn ? icons.cameraOn : icons.cameraOff;
-      setButtonState(previewMic, micOn, "Mute microphone", "Unmute microphone");
-      setButtonState(micTool, micOn, "Mute microphone", "Unmute microphone");
-      setButtonState(previewCamera, cameraOn, "Turn camera off", "Turn camera on");
-      setButtonState(cameraTool, cameraOn, "Turn camera off", "Turn camera on");
-    }
-
-    async function ensureCamera() {
-      if (stream) return true;
-      if (!navigator.mediaDevices?.getUserMedia) {
-        cameraHelp.textContent = "Your browser does not expose camera access from this page.";
-        return false;
-      }
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        previewVideo.srcObject = stream;
-        localVideo.srcObject = stream;
-        return true;
-      } catch (error) {
-        cameraHelp.textContent = "Camera permission was not granted. You can still join with camera off.";
-        return false;
-      }
-    }
-
-    async function setCamera(nextValue) {
-      if (nextValue) {
-        const available = await ensureCamera();
-        if (!available) {
-          cameraOn = false;
-          syncDeviceStatus();
-          return;
-        }
-      }
-
-      cameraOn = nextValue;
-      if (stream) {
-        stream.getVideoTracks().forEach(track => {
-          track.enabled = cameraOn;
-        });
-      }
-      previewFrame.classList.toggle("camera-ready", cameraOn);
-      localTile.classList.toggle("camera-ready", cameraOn);
-      syncDeviceStatus();
-    }
-
-    function toggleMic() {
-      micOn = !micOn;
-      syncDeviceStatus();
-    }
-
-    function formatTime(value) {
-      const minutes = String(Math.floor(value / 60)).padStart(2, "0");
-      const seconds = String(value % 60).padStart(2, "0");
-      return `${minutes}:${seconds}`;
-    }
-
-    function startClock() {
-      clearInterval(callTimer);
-      elapsed = 0;
-      callClock.textContent = "Live 00:00";
-      callTimer = setInterval(() => {
-        elapsed += 1;
-        callClock.textContent = `Live ${formatTime(elapsed)}`;
-      }, 1000);
-    }
-
-    function joinCall() {
-      syncIdentity();
-      inCall = true;
-      joinScreen.classList.add("hidden");
-      callScreen.classList.add("active");
-      window.scrollTo(0, 0);
-      startClock();
-    }
-
-    function leaveCall() {
-      inCall = false;
-      clearInterval(callTimer);
-      callClock.textContent = "Ready";
-      callScreen.classList.remove("active");
-      joinScreen.classList.remove("hidden");
-      window.scrollTo(0, 0);
-    }
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add("show");
-      setTimeout(() => toast.classList.remove("show"), 1600);
-    }
-
-    async function copyInvite() {
-      const invite = "mamazvonit room CC-4829";
-      try {
-        await navigator.clipboard.writeText(invite);
-        showToast("Invite copied");
-      } catch (error) {
-        showToast(invite);
-      }
-    }
-
-    function addChatMessage(text) {
-      const message = document.createElement("div");
-      message.className = "message mine";
-      message.innerHTML = `<strong>You</strong><div class="bubble"></div>`;
-      message.querySelector(".bubble").textContent = text;
-      chatFeed.appendChild(message);
-      chatFeed.scrollTop = chatFeed.scrollHeight;
-    }
-
-    function sendReaction() {
-      addChatMessage("👍");
-      document.querySelector('[data-panel="chatPanel"]').click();
-      showToast("Reaction sent");
-    }
-
-    previewCamera.addEventListener("click", () => setCamera(!cameraOn));
-    cameraTool.addEventListener("click", () => setCamera(!cameraOn));
-    previewMic.addEventListener("click", toggleMic);
-    micTool.addEventListener("click", toggleMic);
-    displayName.addEventListener("input", syncIdentity);
-    document.getElementById("joinCall").addEventListener("click", joinCall);
-    document.getElementById("leaveCall").addEventListener("click", leaveCall);
-    document.getElementById("copyInvite").addEventListener("click", copyInvite);
-    document.getElementById("copyInviteSetup").addEventListener("click", copyInvite);
-    reactionTool.addEventListener("click", sendReaction);
-    shareTool.addEventListener("click", () => {
-      shareTool.classList.toggle("active");
-      showToast(shareTool.classList.contains("active") ? "Screen sharing on" : "Screen sharing off");
-    });
-
-    document.querySelectorAll(".panel-tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".panel-tab").forEach(item => item.classList.remove("active"));
-        document.querySelectorAll(".panel-body").forEach(panel => panel.classList.remove("active"));
-        tab.classList.add("active");
-        document.getElementById(tab.dataset.panel).classList.add("active");
-      });
-    });
-
-    chatComposer.addEventListener("submit", event => {
-      event.preventDefault();
-      const text = chatInput.value.trim();
-      if (!text) return;
-      addChatMessage(text);
-      chatInput.value = "";
-    });
-
-    window.addEventListener("beforeunload", () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    });
-
-    syncIdentity();
-    syncDeviceStatus();
-  </script>
-  -->
   <script src="runtime-config.js"></script>
   <script src="app.js"></script>
 </body>

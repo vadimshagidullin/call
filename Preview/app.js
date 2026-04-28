@@ -39,7 +39,7 @@ const microphoneSelect = document.getElementById("microphoneSelect");
 const speakerSelect = document.getElementById("speakerSelect");
 const newRoomSetup = document.getElementById("newRoomSetup");
 
-const appDisplayName = "mamazvonit";
+const appDisplayName = "Мама звонит";
 const initialParams = new URLSearchParams(window.location.search);
 let roomId = initialParams.get("room") || "CC-4829";
 let signalingUrl = normalizeSignalingUrl(initialParams.get("signal") || window.CLEARCALL_SIGNALING_URL || "");
@@ -52,7 +52,7 @@ const icons = {
 };
 
 let localStream = null;
-let cameraOn = false;
+let cameraOn = true;
 let micOn = true;
 let inCall = false;
 let callTimer = null;
@@ -408,6 +408,8 @@ async function ensureLocalMedia(options = { audio: true, video: true }) {
 }
 
 async function setCamera(nextValue) {
+  nextValue = true;
+
   if (nextValue) {
     const available = await ensureLocalMedia({ audio: inCall, video: true });
     if (!available || !hasVideoTrack()) {
@@ -921,8 +923,8 @@ function sendReaction() {
   document.querySelector('[data-panel="chatPanel"]').click();
 }
 
-previewCamera.addEventListener("click", () => setCamera(!cameraOn));
-cameraTool.addEventListener("click", () => setCamera(!cameraOn));
+previewCamera.addEventListener("click", () => setCamera(true));
+cameraTool.addEventListener("click", () => setCamera(true));
 previewMic.addEventListener("click", toggleMic);
 micTool.addEventListener("click", toggleMic);
 displayName.addEventListener("input", syncIdentity);
@@ -990,3 +992,4 @@ window.addEventListener("beforeunload", () => {
 syncIdentity();
 syncDeviceStatus();
 loadDevices();
+setCamera(true);
